@@ -1,0 +1,149 @@
+==========================================================================================
+ LEGIE DECOMPILATION PROGRESS
+ Generated: 2026-03-02 04:43:35
+==========================================================================================
+
+ Functions: 131 total
+   MATCH:        0  (100% instruction match)
+   CLOSE:        1  (>=80% match)
+   PARTIAL:     13  (some matches)
+   DIFFER:       5  (0% match, in recompiled)
+   NOT_FOUND:  112  (not in recompiled binary)
+
+ Instructions: 75/69110 (0.1%)
+
+ STATUS     FUNCTION                                 RECOMP NAME                         MATCH     PCT
+ --------   ---------------------------------------- ------------------------------ ----------  ------
+ [CLOSE   ] TForm1.Actor1Progress                    TForm1.Actor1Progress             4/5       80.0%
+ [PARTIAL ] TForm1.FormMouseWheelDown                TForm1.FormMouseWheelDown        12/21      57.1%
+ [PARTIAL ] TForm1.FormMouseWheelUp                  TForm1.FormMouseWheelUp          12/22      54.5%
+ [PARTIAL ] TForm1.FormShow                          TForm1.FormShow                   1/2       50.0%
+ [PARTIAL ] TForm1.GLDirectOpenGL1Render             TForm1.GLDirectOpenGL1Render      1/2       50.0%
+ [PARTIAL ] sub_00562D80                             GetGameMode                       3/14      21.4%
+ [PARTIAL ] TForm1.GLSceneViewer1MouseMove           TForm1.GLSceneViewer1MouseMove    2/11      18.2%
+ [PARTIAL ] TForm1.FormCloseQuery                    TForm1.FormCloseQuery            15/86      17.4%
+ [PARTIAL ] TForm1.FormMouseUp                       TForm1.FormMouseUp                2/36       5.6%
+ [PARTIAL ] TForm1.FormKeyPress                      TForm1.FormKeyPress               3/64       4.7%
+ [PARTIAL ] TForm1.GLSceneViewer1MouseDown           TForm1.GLSceneViewer1MouseDown    4/113      3.5%
+ [PARTIAL ] TForm1.FormCreate                        TForm1.FormCreate                12/725      1.7%
+ [PARTIAL ] TForm1.TimerProgress                     TForm1.TimerProgress              2/749      0.3%
+ [PARTIAL ] sub_00592374                             GameStepUpdate                    2/3299     0.1%
+ [NOT_FOUND] TForm1.GLkourProgress                                                      0/12       0.0%
+ [NOT_FOUND] TForm1.Timer1Timer                                                         0/1        0.0%
+ [NOT_FOUND] sub_00561B60                                                               0/8        0.0%
+ [NOT_FOUND] sub_00561B78                                                               0/65       0.0%
+ [NOT_FOUND] sub_00561C24                                                               0/48       0.0%
+ [NOT_FOUND] sub_00561C98                                                               0/34       0.0%
+ [NOT_FOUND] sub_00561D24                                                               0/8        0.0%
+ [NOT_FOUND] sub_00561D3C                                                               0/33       0.0%
+ [NOT_FOUND] sub_00561D94                                                               0/10       0.0%
+ [NOT_FOUND] sub_00561DB8                                                               0/44       0.0%
+ [NOT_FOUND] sub_00561E50                                                               0/386      0.0%
+ [NOT_FOUND] sub_005626AC                                                               0/46       0.0%
+ [NOT_FOUND] sub_00562724                                                               0/41       0.0%
+ [NOT_FOUND] sub_005627BC                                                               0/44       0.0%
+ [NOT_FOUND] sub_00562858                                                               0/36       0.0%
+ [NOT_FOUND] sub_005628C8                                                               0/14       0.0%
+ [NOT_FOUND] sub_00562904                                                               0/15       0.0%
+ [NOT_FOUND] sub_00562938                                                               0/29       0.0%
+ [NOT_FOUND] sub_005629A8                                                               0/288      0.0%
+ [NOT_FOUND] sub_00562CF8                                                               0/52       0.0%
+ [NOT_FOUND] sub_00562D9C                                                               0/544      0.0%
+ [NOT_FOUND] sub_00563900                                                               0/520      0.0%
+ [NOT_FOUND] sub_0056410C                                                               0/75       0.0%
+ [NOT_FOUND] sub_005641E4                                                               0/245      0.0%
+ [NOT_FOUND] sub_005644EC                                                               0/12       0.0%
+ [NOT_FOUND] sub_00564514                                                               0/27       0.0%
+ [NOT_FOUND] sub_0056455C                                                               0/18       0.0%
+ [NOT_FOUND] sub_005645A0                                                               0/16       0.0%
+ [NOT_FOUND] sub_005645E0                                                               0/137      0.0%
+ [NOT_FOUND] sub_005647E0                                                               0/103      0.0%
+ [NOT_FOUND] sub_0056493C                                                               0/219      0.0%
+ [NOT_FOUND] sub_00564CE4                                                               0/144      0.0%
+ [NOT_FOUND] sub_00564EF0                                                               0/8        0.0%
+ [NOT_FOUND] sub_00564F08                                                               0/33       0.0%
+ [NOT_FOUND] sub_00564F74                                                               0/46       0.0%
+ [NOT_FOUND] sub_00565000                                                               0/280      0.0%
+ [NOT_FOUND] sub_00565374                                                               0/79       0.0%
+ [NOT_FOUND] sub_00565464                                                               0/64       0.0%
+ [NOT_FOUND] sub_00565528                                                               0/49       0.0%
+ [NOT_FOUND] sub_005655D4                                                               0/54       0.0%
+ [NOT_FOUND] sub_00565684                                                               0/88       0.0%
+ [NOT_FOUND] sub_005657C4                                                               0/28       0.0%
+ [NOT_FOUND] sub_00565810                                                               0/205      0.0%
+ [NOT_FOUND] sub_00565B50                                                               0/65       0.0%
+ [NOT_FOUND] sub_00565C20                                                               0/71       0.0%
+ [NOT_FOUND] sub_00565D08                                                               0/48       0.0%
+ [NOT_FOUND] sub_00565D88                                                               0/82       0.0%
+ [NOT_FOUND] sub_00565E64                                                               0/19       0.0%
+ [DIFFER  ] sub_00565EB4                             TransitionState                   0/134      0.0%
+ [NOT_FOUND] sub_00566098                                                               0/19       0.0%
+ [NOT_FOUND] sub_005660D4                                                               0/2184     0.0%
+ [NOT_FOUND] sub_005691F0                                                               0/1238     0.0%
+ [NOT_FOUND] sub_0056A59C                                                               0/916      0.0%
+ [NOT_FOUND] sub_0056B494                                                               0/56       0.0%
+ [NOT_FOUND] sub_0056B558                                                               0/47       0.0%
+ [NOT_FOUND] sub_0056B5EC                                                               0/80       0.0%
+ [NOT_FOUND] sub_0056B6EC                                                               0/39       0.0%
+ [NOT_FOUND] sub_0056B760                                                               0/19       0.0%
+ [NOT_FOUND] sub_0056B7A0                                                               0/92       0.0%
+ [NOT_FOUND] sub_0056B8E4                                                               0/1610     0.0%
+ [NOT_FOUND] sub_0056D460                                                               0/708      0.0%
+ [NOT_FOUND] sub_0056DEBC                                                               0/342      0.0%
+ [NOT_FOUND] sub_0056E4DC                                                               0/22       0.0%
+ [NOT_FOUND] sub_0056E508                                                               0/1331     0.0%
+ [NOT_FOUND] sub_00570084                                                               0/213      0.0%
+ [NOT_FOUND] sub_00570654                                                               0/18       0.0%
+ [NOT_FOUND] sub_005706A0                                                               0/44       0.0%
+ [NOT_FOUND] sub_0057074C                                                               0/61       0.0%
+ [NOT_FOUND] sub_00570828                                                               0/58       0.0%
+ [NOT_FOUND] sub_00570914                                                               0/20       0.0%
+ [NOT_FOUND] sub_00570990                                                               0/34       0.0%
+ [NOT_FOUND] sub_00570A34                                                               0/78       0.0%
+ [NOT_FOUND] sub_00570B78                                                               0/477      0.0%
+ [NOT_FOUND] sub_00571804                                                               0/25       0.0%
+ [NOT_FOUND] sub_0057185C                                                               0/299      0.0%
+ [NOT_FOUND] sub_00571CEC                                                               0/126      0.0%
+ [NOT_FOUND] sub_00571ECC                                                               0/1132     0.0%
+ [NOT_FOUND] sub_0057342C                                                               0/27263    0.0%
+ [DIFFER  ] sub_00590B2C                             InitMaterials                     0/165      0.0%
+ [NOT_FOUND] sub_00591C38                                                               0/43       0.0%
+ [NOT_FOUND] sub_00591CCC                                                               0/192      0.0%
+ [NOT_FOUND] sub_00591FA4                                                               0/116      0.0%
+ [NOT_FOUND] sub_005921AC                                                               0/95       0.0%
+ [NOT_FOUND] sub_00595BCC                                                               0/21       0.0%
+ [NOT_FOUND] sub_00596818                                                               0/25       0.0%
+ [NOT_FOUND] sub_00596858                                                               0/18       0.0%
+ [NOT_FOUND] sub_0059688C                                                               0/1097     0.0%
+ [NOT_FOUND] sub_00597868                                                               0/37       0.0%
+ [NOT_FOUND] sub_005978FC                                                               0/8        0.0%
+ [NOT_FOUND] sub_00597918                                                               0/105      0.0%
+ [NOT_FOUND] sub_00597ACC                                                               0/2        0.0%
+ [NOT_FOUND] sub_00597AD4                                                               0/53       0.0%
+ [NOT_FOUND] sub_00597BA4                                                               0/241      0.0%
+ [NOT_FOUND] sub_00597EB0                                                               0/6        0.0%
+ [NOT_FOUND] sub_00597EC4                                                               0/5        0.0%
+ [NOT_FOUND] sub_00597EE8                                                               0/5        0.0%
+ [NOT_FOUND] sub_00597F00                                                               0/60       0.0%
+ [NOT_FOUND] sub_00597FF4                                                               0/466      0.0%
+ [NOT_FOUND] sub_0059874C                                                               0/15       0.0%
+ [DIFFER  ] sub_00598780                             HandleMouseWheel                  0/188      0.0%
+ [NOT_FOUND] sub_00598A68                                                               0/395      0.0%
+ [NOT_FOUND] sub_005990E4                                                               0/6        0.0%
+ [NOT_FOUND] sub_00599108                                                               0/668      0.0%
+ [NOT_FOUND] sub_00599BA4                                                               0/596      0.0%
+ [NOT_FOUND] sub_0059A59C                                                               0/946      0.0%
+ [NOT_FOUND] sub_0059B360                                                               0/49       0.0%
+ [NOT_FOUND] sub_0059B40C                                                               0/3        0.0%
+ [NOT_FOUND] sub_0059B418                                                               0/270      0.0%
+ [NOT_FOUND] sub_0059B7AC                                                               0/154      0.0%
+ [NOT_FOUND] sub_0059B9B4                                                               0/12470    0.0%
+ [NOT_FOUND] sub_005A8EC4                                                               0/45       0.0%
+ [NOT_FOUND] sub_005A8F50                                                               0/1164     0.0%
+ [NOT_FOUND] sub_005AA308                                                               0/577      0.0%
+ [NOT_FOUND] sub_005AAE68                                                               0/269      0.0%
+ [NOT_FOUND] sub_005AB214                                                               0/18       0.0%
+ [DIFFER  ] sub_005AB24C                             LoadSettings                      0/137      0.0%
+ [DIFFER  ] sub_005AB3C0                             SaveSettings                      0/53       0.0%
+
+ Overall: 0.1% instruction match

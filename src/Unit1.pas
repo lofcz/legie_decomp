@@ -642,7 +642,7 @@ begin
   PrevGameState := 0;
   GameSubState := 0;
   GameLoading := False;
-  GameState := GS_MENU;
+  GameState := GS_IDLE;
   DemoScreenShown := False;
 
   DebugLog('Loading settings...');

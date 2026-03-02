@@ -27,7 +27,7 @@ Y=1
 Z=1
 
 [Linker]
-MapFile=0
+MapFile=3
 OutputObjs=0
 ConsoleApp=0
 DebugInfo=0

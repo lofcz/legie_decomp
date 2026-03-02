@@ -1,0 +1,1326 @@
+{
+  "timestamp": "2026-03-02T04:48:49.065390",
+  "summary": {
+    "total_functions": 131,
+    "matched": 0,
+    "close": 1,
+    "partial": 13,
+    "differ": 5,
+    "not_found": 112,
+    "total_instructions": 69110,
+    "matched_instructions": 75,
+    "percentage": 0.11
+  },
+  "functions": [
+    {
+      "name": "sub_00561B60",
+      "address": "00561B60",
+      "unit": "Unit1",
+      "orig_instrs": 8,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 8,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_00561B78",
+      "address": "00561B78",
+      "unit": "Unit1",
+      "orig_instrs": 65,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 65,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_00561C24",
+      "address": "00561C24",
+      "unit": "Unit1",
+      "orig_instrs": 48,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 48,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_00561C98",
+      "address": "00561C98",
+      "unit": "Unit1",
+      "orig_instrs": 34,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 34,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_00561D24",
+      "address": "00561D24",
+      "unit": "Unit1",
+      "orig_instrs": 8,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 8,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_00561D3C",
+      "address": "00561D3C",
+      "unit": "Unit1",
+      "orig_instrs": 33,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 33,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_00561D94",
+      "address": "00561D94",
+      "unit": "Unit1",
+      "orig_instrs": 10,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 10,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_00561DB8",
+      "address": "00561DB8",
+      "unit": "Unit1",
+      "orig_instrs": 44,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 44,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_00561E50",
+      "address": "00561E50",
+      "unit": "Unit1",
+      "orig_instrs": 386,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 386,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_005626AC",
+      "address": "005626AC",
+      "unit": "Unit1",
+      "orig_instrs": 46,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 46,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_00562724",
+      "address": "00562724",
+      "unit": "Unit1",
+      "orig_instrs": 41,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 41,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_005627BC",
+      "address": "005627BC",
+      "unit": "Unit1",
+      "orig_instrs": 44,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 44,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_00562858",
+      "address": "00562858",
+      "unit": "Unit1",
+      "orig_instrs": 36,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 36,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_005628C8",
+      "address": "005628C8",
+      "unit": "Unit1",
+      "orig_instrs": 14,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 14,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_00562904",
+      "address": "00562904",
+      "unit": "Unit1",
+      "orig_instrs": 15,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 15,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_00562938",
+      "address": "00562938",
+      "unit": "Unit1",
+      "orig_instrs": 29,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 29,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_005629A8",
+      "address": "005629A8",
+      "unit": "Unit1",
+      "orig_instrs": 288,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 288,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_00562CF8",
+      "address": "00562CF8",
+      "unit": "Unit1",
+      "orig_instrs": 52,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 52,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_00562D80",
+      "address": "00562D80",
+      "unit": "Unit1",
+      "orig_instrs": 13,
+      "recomp_name": "GetGameMode",
+      "match_count": 3,
+      "total_count": 14,
+      "status": "PARTIAL"
+    },
+    {
+      "name": "sub_00562D9C",
+      "address": "00562D9C",
+      "unit": "Unit1",
+      "orig_instrs": 544,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 544,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_00563900",
+      "address": "00563900",
+      "unit": "Unit1",
+      "orig_instrs": 520,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 520,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_0056410C",
+      "address": "0056410C",
+      "unit": "Unit1",
+      "orig_instrs": 75,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 75,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_005641E4",
+      "address": "005641E4",
+      "unit": "Unit1",
+      "orig_instrs": 245,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 245,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_005644EC",
+      "address": "005644EC",
+      "unit": "Unit1",
+      "orig_instrs": 12,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 12,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_00564514",
+      "address": "00564514",
+      "unit": "Unit1",
+      "orig_instrs": 27,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 27,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_0056455C",
+      "address": "0056455C",
+      "unit": "Unit1",
+      "orig_instrs": 18,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 18,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_005645A0",
+      "address": "005645A0",
+      "unit": "Unit1",
+      "orig_instrs": 16,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 16,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_005645E0",
+      "address": "005645E0",
+      "unit": "Unit1",
+      "orig_instrs": 137,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 137,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_005647E0",
+      "address": "005647E0",
+      "unit": "Unit1",
+      "orig_instrs": 103,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 103,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_0056493C",
+      "address": "0056493C",
+      "unit": "Unit1",
+      "orig_instrs": 219,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 219,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_00564CE4",
+      "address": "00564CE4",
+      "unit": "Unit1",
+      "orig_instrs": 144,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 144,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_00564EF0",
+      "address": "00564EF0",
+      "unit": "Unit1",
+      "orig_instrs": 8,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 8,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_00564F08",
+      "address": "00564F08",
+      "unit": "Unit1",
+      "orig_instrs": 33,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 33,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_00564F74",
+      "address": "00564F74",
+      "unit": "Unit1",
+      "orig_instrs": 46,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 46,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_00565000",
+      "address": "00565000",
+      "unit": "Unit1",
+      "orig_instrs": 280,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 280,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_00565374",
+      "address": "00565374",
+      "unit": "Unit1",
+      "orig_instrs": 79,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 79,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_00565464",
+      "address": "00565464",
+      "unit": "Unit1",
+      "orig_instrs": 64,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 64,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_00565528",
+      "address": "00565528",
+      "unit": "Unit1",
+      "orig_instrs": 49,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 49,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_005655D4",
+      "address": "005655D4",
+      "unit": "Unit1",
+      "orig_instrs": 54,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 54,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_00565684",
+      "address": "00565684",
+      "unit": "Unit1",
+      "orig_instrs": 88,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 88,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_005657C4",
+      "address": "005657C4",
+      "unit": "Unit1",
+      "orig_instrs": 28,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 28,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_00565810",
+      "address": "00565810",
+      "unit": "Unit1",
+      "orig_instrs": 205,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 205,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_00565B50",
+      "address": "00565B50",
+      "unit": "Unit1",
+      "orig_instrs": 65,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 65,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_00565C20",
+      "address": "00565C20",
+      "unit": "Unit1",
+      "orig_instrs": 71,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 71,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_00565D08",
+      "address": "00565D08",
+      "unit": "Unit1",
+      "orig_instrs": 48,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 48,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_00565D88",
+      "address": "00565D88",
+      "unit": "Unit1",
+      "orig_instrs": 82,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 82,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_00565E64",
+      "address": "00565E64",
+      "unit": "Unit1",
+      "orig_instrs": 19,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 19,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_00565EB4",
+      "address": "00565EB4",
+      "unit": "Unit1",
+      "orig_instrs": 134,
+      "recomp_name": "TransitionState",
+      "match_count": 0,
+      "total_count": 134,
+      "status": "DIFFER"
+    },
+    {
+      "name": "sub_00566098",
+      "address": "00566098",
+      "unit": "Unit1",
+      "orig_instrs": 19,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 19,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_005660D4",
+      "address": "005660D4",
+      "unit": "Unit1",
+      "orig_instrs": 2184,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 2184,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_005691F0",
+      "address": "005691F0",
+      "unit": "Unit1",
+      "orig_instrs": 1238,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 1238,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_0056A59C",
+      "address": "0056A59C",
+      "unit": "Unit1",
+      "orig_instrs": 916,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 916,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_0056B494",
+      "address": "0056B494",
+      "unit": "Unit1",
+      "orig_instrs": 56,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 56,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_0056B558",
+      "address": "0056B558",
+      "unit": "Unit1",
+      "orig_instrs": 47,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 47,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_0056B5EC",
+      "address": "0056B5EC",
+      "unit": "Unit1",
+      "orig_instrs": 80,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 80,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_0056B6EC",
+      "address": "0056B6EC",
+      "unit": "Unit1",
+      "orig_instrs": 39,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 39,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_0056B760",
+      "address": "0056B760",
+      "unit": "Unit1",
+      "orig_instrs": 19,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 19,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_0056B7A0",
+      "address": "0056B7A0",
+      "unit": "Unit1",
+      "orig_instrs": 92,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 92,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_0056B8E4",
+      "address": "0056B8E4",
+      "unit": "Unit1",
+      "orig_instrs": 1610,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 1610,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_0056D460",
+      "address": "0056D460",
+      "unit": "Unit1",
+      "orig_instrs": 708,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 708,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_0056DEBC",
+      "address": "0056DEBC",
+      "unit": "Unit1",
+      "orig_instrs": 342,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 342,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_0056E4DC",
+      "address": "0056E4DC",
+      "unit": "Unit1",
+      "orig_instrs": 22,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 22,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_0056E508",
+      "address": "0056E508",
+      "unit": "Unit1",
+      "orig_instrs": 1331,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 1331,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_00570084",
+      "address": "00570084",
+      "unit": "Unit1",
+      "orig_instrs": 213,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 213,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_00570654",
+      "address": "00570654",
+      "unit": "Unit1",
+      "orig_instrs": 18,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 18,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_005706A0",
+      "address": "005706A0",
+      "unit": "Unit1",
+      "orig_instrs": 44,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 44,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_0057074C",
+      "address": "0057074C",
+      "unit": "Unit1",
+      "orig_instrs": 61,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 61,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_00570828",
+      "address": "00570828",
+      "unit": "Unit1",
+      "orig_instrs": 58,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 58,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_00570914",
+      "address": "00570914",
+      "unit": "Unit1",
+      "orig_instrs": 20,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 20,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_00570990",
+      "address": "00570990",
+      "unit": "Unit1",
+      "orig_instrs": 34,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 34,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_00570A34",
+      "address": "00570A34",
+      "unit": "Unit1",
+      "orig_instrs": 78,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 78,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_00570B78",
+      "address": "00570B78",
+      "unit": "Unit1",
+      "orig_instrs": 477,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 477,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_00571804",
+      "address": "00571804",
+      "unit": "Unit1",
+      "orig_instrs": 25,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 25,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_0057185C",
+      "address": "0057185C",
+      "unit": "Unit1",
+      "orig_instrs": 299,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 299,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_00571CEC",
+      "address": "00571CEC",
+      "unit": "Unit1",
+      "orig_instrs": 126,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 126,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_00571ECC",
+      "address": "00571ECC",
+      "unit": "Unit1",
+      "orig_instrs": 1132,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 1132,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_0057342C",
+      "address": "0057342C",
+      "unit": "Unit1",
+      "orig_instrs": 27263,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 27263,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_00590B2C",
+      "address": "00590B2C",
+      "unit": "Unit1",
+      "orig_instrs": 165,
+      "recomp_name": "InitMaterials",
+      "match_count": 0,
+      "total_count": 165,
+      "status": "DIFFER"
+    },
+    {
+      "name": "TForm1.FormCreate",
+      "address": "00590DE8",
+      "unit": "Unit1",
+      "orig_instrs": 725,
+      "recomp_name": "TForm1.FormCreate",
+      "match_count": 12,
+      "total_count": 725,
+      "status": "PARTIAL"
+    },
+    {
+      "name": "TForm1.GLSceneViewer1MouseDown",
+      "address": "00591AAC",
+      "unit": "Unit1",
+      "orig_instrs": 92,
+      "recomp_name": "TForm1.GLSceneViewer1MouseDown",
+      "match_count": 4,
+      "total_count": 113,
+      "status": "PARTIAL"
+    },
+    {
+      "name": "TForm1.GLSceneViewer1MouseMove",
+      "address": "00591C1C",
+      "unit": "Unit1",
+      "orig_instrs": 8,
+      "recomp_name": "TForm1.GLSceneViewer1MouseMove",
+      "match_count": 2,
+      "total_count": 11,
+      "status": "PARTIAL"
+    },
+    {
+      "name": "TForm1.Timer1Timer",
+      "address": "00591C34",
+      "unit": "Unit1",
+      "orig_instrs": 1,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 1,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_00591C38",
+      "address": "00591C38",
+      "unit": "Unit1",
+      "orig_instrs": 43,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 43,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_00591CCC",
+      "address": "00591CCC",
+      "unit": "Unit1",
+      "orig_instrs": 192,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 192,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_00591FA4",
+      "address": "00591FA4",
+      "unit": "Unit1",
+      "orig_instrs": 116,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 116,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_005921AC",
+      "address": "005921AC",
+      "unit": "Unit1",
+      "orig_instrs": 95,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 95,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_00592374",
+      "address": "00592374",
+      "unit": "Unit1",
+      "orig_instrs": 3299,
+      "recomp_name": "GameStepUpdate",
+      "match_count": 2,
+      "total_count": 3299,
+      "status": "PARTIAL"
+    },
+    {
+      "name": "sub_00595BCC",
+      "address": "00595BCC",
+      "unit": "Unit1",
+      "orig_instrs": 21,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 21,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "TForm1.TimerProgress",
+      "address": "00595C24",
+      "unit": "Unit1",
+      "orig_instrs": 749,
+      "recomp_name": "TForm1.TimerProgress",
+      "match_count": 2,
+      "total_count": 749,
+      "status": "PARTIAL"
+    },
+    {
+      "name": "sub_00596818",
+      "address": "00596818",
+      "unit": "Unit1",
+      "orig_instrs": 25,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 25,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_00596858",
+      "address": "00596858",
+      "unit": "Unit1",
+      "orig_instrs": 18,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 18,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_0059688C",
+      "address": "0059688C",
+      "unit": "Unit1",
+      "orig_instrs": 1097,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 1097,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_00597868",
+      "address": "00597868",
+      "unit": "Unit1",
+      "orig_instrs": 37,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 37,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_005978FC",
+      "address": "005978FC",
+      "unit": "Unit1",
+      "orig_instrs": 8,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 8,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_00597918",
+      "address": "00597918",
+      "unit": "Unit1",
+      "orig_instrs": 105,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 105,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_00597ACC",
+      "address": "00597ACC",
+      "unit": "Unit1",
+      "orig_instrs": 2,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 2,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_00597AD4",
+      "address": "00597AD4",
+      "unit": "Unit1",
+      "orig_instrs": 53,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 53,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_00597BA4",
+      "address": "00597BA4",
+      "unit": "Unit1",
+      "orig_instrs": 241,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 241,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_00597EB0",
+      "address": "00597EB0",
+      "unit": "Unit1",
+      "orig_instrs": 6,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 6,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_00597EC4",
+      "address": "00597EC4",
+      "unit": "Unit1",
+      "orig_instrs": 5,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 5,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_00597EE8",
+      "address": "00597EE8",
+      "unit": "Unit1",
+      "orig_instrs": 5,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 5,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_00597F00",
+      "address": "00597F00",
+      "unit": "Unit1",
+      "orig_instrs": 60,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 60,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_00597FF4",
+      "address": "00597FF4",
+      "unit": "Unit1",
+      "orig_instrs": 466,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 466,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_0059874C",
+      "address": "0059874C",
+      "unit": "Unit1",
+      "orig_instrs": 15,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 15,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_00598780",
+      "address": "00598780",
+      "unit": "Unit1",
+      "orig_instrs": 188,
+      "recomp_name": "HandleMouseWheel",
+      "match_count": 0,
+      "total_count": 188,
+      "status": "DIFFER"
+    },
+    {
+      "name": "sub_00598A68",
+      "address": "00598A68",
+      "unit": "Unit1",
+      "orig_instrs": 395,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 395,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_005990E4",
+      "address": "005990E4",
+      "unit": "Unit1",
+      "orig_instrs": 6,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 6,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_00599108",
+      "address": "00599108",
+      "unit": "Unit1",
+      "orig_instrs": 668,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 668,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_00599BA4",
+      "address": "00599BA4",
+      "unit": "Unit1",
+      "orig_instrs": 596,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 596,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_0059A59C",
+      "address": "0059A59C",
+      "unit": "Unit1",
+      "orig_instrs": 946,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 946,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_0059B360",
+      "address": "0059B360",
+      "unit": "Unit1",
+      "orig_instrs": 49,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 49,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_0059B40C",
+      "address": "0059B40C",
+      "unit": "Unit1",
+      "orig_instrs": 3,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 3,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_0059B418",
+      "address": "0059B418",
+      "unit": "Unit1",
+      "orig_instrs": 270,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 270,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_0059B7AC",
+      "address": "0059B7AC",
+      "unit": "Unit1",
+      "orig_instrs": 154,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 154,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_0059B9B4",
+      "address": "0059B9B4",
+      "unit": "Unit1",
+      "orig_instrs": 12470,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 12470,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "TForm1.Actor1Progress",
+      "address": "005A8EB8",
+      "unit": "Unit1",
+      "orig_instrs": 4,
+      "recomp_name": "TForm1.Actor1Progress",
+      "match_count": 4,
+      "total_count": 5,
+      "status": "CLOSE"
+    },
+    {
+      "name": "TForm1.GLDirectOpenGL1Render",
+      "address": "005A8EC0",
+      "unit": "Unit1",
+      "orig_instrs": 1,
+      "recomp_name": "TForm1.GLDirectOpenGL1Render",
+      "match_count": 1,
+      "total_count": 2,
+      "status": "PARTIAL"
+    },
+    {
+      "name": "sub_005A8EC4",
+      "address": "005A8EC4",
+      "unit": "Unit1",
+      "orig_instrs": 45,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 45,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_005A8F50",
+      "address": "005A8F50",
+      "unit": "Unit1",
+      "orig_instrs": 1164,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 1164,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "TForm1.GLkourProgress",
+      "address": "005AA270",
+      "unit": "Unit1",
+      "orig_instrs": 12,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 12,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "TForm1.FormShow",
+      "address": "005AA29C",
+      "unit": "Unit1",
+      "orig_instrs": 1,
+      "recomp_name": "TForm1.FormShow",
+      "match_count": 1,
+      "total_count": 2,
+      "status": "PARTIAL"
+    },
+    {
+      "name": "TForm1.FormMouseWheelDown",
+      "address": "005AA2A0",
+      "unit": "Unit1",
+      "orig_instrs": 21,
+      "recomp_name": "TForm1.FormMouseWheelDown",
+      "match_count": 12,
+      "total_count": 21,
+      "status": "PARTIAL"
+    },
+    {
+      "name": "TForm1.FormMouseWheelUp",
+      "address": "005AA2D4",
+      "unit": "Unit1",
+      "orig_instrs": 21,
+      "recomp_name": "TForm1.FormMouseWheelUp",
+      "match_count": 12,
+      "total_count": 22,
+      "status": "PARTIAL"
+    },
+    {
+      "name": "sub_005AA308",
+      "address": "005AA308",
+      "unit": "Unit1",
+      "orig_instrs": 577,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 577,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "TForm1.FormCloseQuery",
+      "address": "005AAD14",
+      "unit": "Unit1",
+      "orig_instrs": 84,
+      "recomp_name": "TForm1.FormCloseQuery",
+      "match_count": 15,
+      "total_count": 86,
+      "status": "PARTIAL"
+    },
+    {
+      "name": "sub_005AAE68",
+      "address": "005AAE68",
+      "unit": "Unit1",
+      "orig_instrs": 269,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 269,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_005AB214",
+      "address": "005AB214",
+      "unit": "Unit1",
+      "orig_instrs": 18,
+      "recomp_name": null,
+      "match_count": 0,
+      "total_count": 18,
+      "status": "NOT_FOUND"
+    },
+    {
+      "name": "sub_005AB24C",
+      "address": "005AB24C",
+      "unit": "Unit1",
+      "orig_instrs": 62,
+      "recomp_name": "LoadSettings",
+      "match_count": 0,
+      "total_count": 137,
+      "status": "DIFFER"
+    },
+    {
+      "name": "sub_005AB3C0",
+      "address": "005AB3C0",
+      "unit": "Unit1",
+      "orig_instrs": 22,
+      "recomp_name": "SaveSettings",
+      "match_count": 0,
+      "total_count": 53,
+      "status": "DIFFER"
+    },
+    {
+      "name": "TForm1.FormMouseUp",
+      "address": "005AB45C",
+      "unit": "Unit1",
+      "orig_instrs": 16,
+      "recomp_name": "TForm1.FormMouseUp",
+      "match_count": 2,
+      "total_count": 36,
+      "status": "PARTIAL"
+    },
+    {
+      "name": "TForm1.FormKeyPress",
+      "address": "005AB4B4",
+      "unit": "Unit1",
+      "orig_instrs": 64,
+      "recomp_name": "TForm1.FormKeyPress",
+      "match_count": 3,
+      "total_count": 64,
+      "status": "PARTIAL"
+    }
+  ]
+}

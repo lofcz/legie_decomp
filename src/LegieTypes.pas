@@ -15,7 +15,7 @@ uses
 
 { ===== Game State Constants ===== }
 const
-  GS_MENU       = 0;
+  GS_IDLE       = 0;
   GS_INTRO      = 1;
   GS_GAMEPLAY   = 2;
   GS_DIALOGUE   = 3;
@@ -23,6 +23,7 @@ const
   GS_DIARY      = 5;
   GS_EQUIPMENT  = 6;
   GS_MAP        = 7;
+  GS_MAINMENU   = $0C;
   GS_CUTSCENE   = $0D;
   GS_LOADING    = $0F;
 
@@ -115,6 +116,7 @@ var
   InvertMouseReg: Boolean;          { gvar_005F552D }
   MouseSensitivity: Byte;           { gvar_005F5D34 }
   MouseSensReg: ShortInt;           { gvar_005F552E }
+  MenuActiveFlags: Byte;            { gvar_005F5D2E - nonzero when save/load unlocked }
 
   { -- Input -- }
   MouseX: Integer;                  { gvar_005F5EE0 }
@@ -151,7 +153,7 @@ var
   StreamSudokop: TMemoryStream;     { gvar_005F551C }
 
   { -- Player -- }
-  PlayerHealth: Byte;               { gvar_005F5D08 }
+  MenuHoverIndex: Byte;             { gvar_005F5D08 - menu hover in state $0C, health in gameplay }
   DialogueText: AnsiString;         { gvar_005F5D18 }
   DialogueActive: Boolean;          { gvar_005F5D38 }
   PlayerPosData: Pointer;           { gvar_005F5DA4 }
@@ -166,12 +168,17 @@ var
   SaveData1: Integer;               { gvar_005F5530 }
   SaveData2: Integer;               { gvar_005F5534 }
 
+  { -- Menu animation -- }
+  PlochaDirection: ShortInt;        { gvar_005F5D81 - +1 increasing, -1 decreasing }
+  PlochaAlpha: Single;              { gvar_005F5D84 - oscillates between 0.1 and 0.25 }
+
   { -- Scene/Rendering -- }
   Form1Ref: Pointer;                { gvar_005F5524 - 71 refs }
   GameDataPtr: Pointer;             { gvar_005FE498 - 24 refs }
   FadeAlpha: Single;                { gvar_005FE678 }
   SceneFlag1: Boolean;              { gvar_005FE688 }
   SceneFlag2: Byte;                 { gvar_005FE6A1 }
+  TextureFormatFlag: Byte;          { gvar_005FDD48 - 0=JPG, 1=TGA }
   SceneFlag3: Boolean;              { gvar_005FDD49 }
   GLScenePtr: Pointer;              { gvar_005AF664 - 51 refs }
   MaterialsPtr: Pointer;            { gvar_005AD060 - 21 refs }

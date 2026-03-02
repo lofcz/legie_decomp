@@ -1,0 +1,98 @@
+{
+  "005626AC": {
+    "current_name": "UpdateCursorPos",
+    "orig_name": "sub_005626AC",
+    "is_stub": true,
+    "line": 356
+  },
+  "00562724": {
+    "current_name": "ClearClickAreas",
+    "orig_name": "sub_00562724",
+    "is_stub": true,
+    "line": 359
+  },
+  "00562990": {
+    "current_name": "ClearAllAreas",
+    "orig_name": "unknown",
+    "is_stub": true,
+    "line": 362
+  },
+  "0056410C": {
+    "current_name": "ProcessPick",
+    "orig_name": "sub_0056410C",
+    "is_stub": false,
+    "line": 408
+  },
+  "005644A4": {
+    "current_name": "EnterGameplay",
+    "orig_name": "unknown",
+    "is_stub": false,
+    "line": 411
+  },
+  "005652EC": {
+    "current_name": "DisplayMessage",
+    "orig_name": "unknown",
+    "is_stub": false,
+    "line": 424
+  },
+  "00565DD0": {
+    "current_name": "TransitionState",
+    "orig_name": "unknown",
+    "is_stub": false,
+    "line": 430
+  },
+  "00565EB4": {
+    "current_name": "LoadLevel",
+    "orig_name": "sub_00565EB4",
+    "is_stub": false,
+    "line": 433
+  },
+  "005691F0": {
+    "current_name": "GameLogicUpdate",
+    "orig_name": "sub_005691F0",
+    "is_stub": false,
+    "line": 439
+  },
+  "0056DEBC": {
+    "current_name": "LoadTextureSystem",
+    "orig_name": "sub_0056DEBC",
+    "is_stub": false,
+    "line": 448
+  },
+  "00570654": {
+    "current_name": "TurnPlayer",
+    "orig_name": "sub_00570654",
+    "is_stub": false,
+    "line": 460
+  },
+  "00590B2C": {
+    "current_name": "UpdateInputDisplay",
+    "orig_name": "sub_00590B2C",
+    "is_stub": false,
+    "line": 522
+  },
+  "00591C38": {
+    "current_name": "GameStepUpdate",
+    "orig_name": "sub_00591C38",
+    "is_stub": false,
+    "line": 525
+  },
+  "00598780": {
+    "current_name": "HandleMainMenu",
+    "orig_name": "sub_00598780",
+    "is_stub": false,
+    "line": 531
+  },
+  "005AB230": {
+    "current_name": "TForm1.FormDestroy",
+    "orig_name": "unknown",
+    "is_stub": false,
+    "line": 717
+  },
+  "005AB4B4": {
+    "current_name": "TForm1.FormKeyPress",
+    "orig_name": "TForm1.FormKeyPress",
+    "is_stub": false,
+    "line": 779
+  }
+}
