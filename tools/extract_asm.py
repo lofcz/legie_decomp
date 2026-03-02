@@ -115,7 +115,7 @@ def extract_functions_from_file(filepath):
             pending_addr = None
             continue
 
-        if RE_BLOCK_END.match(line) or line.strip() == "*}":
+        if RE_BLOCK_END.match(line) or line.strip() == "*}" or line.strip().endswith("*}"):
             in_asm_block = False
             pending_addr = None
             continue
