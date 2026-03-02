@@ -123,8 +123,8 @@ var
   MouseY: Integer;                  { gvar_005F5EE4 }
   PrevMouseX: Integer;              { gvar_005F5DE8 }
   PrevMouseY: Integer;              { gvar_005F5DEC }
-  TargetMouseX: Single;             { gvar_005F5DF0 }
-  TargetMouseY: Single;             { gvar_005F5DF4 }
+  TargetMouseX: Integer;             { gvar_005F5DF0 - screen center X in menu mode }
+  TargetMouseY: Integer;             { gvar_005F5DF4 - screen center Y in menu mode }
   IdleCounter: Integer;             { gvar_005F5DFC }
   MouseWheelDelta: Integer;         { gvar_005FE494 }
 
@@ -171,6 +171,7 @@ var
   { -- Menu animation -- }
   PlochaDirection: ShortInt;        { gvar_005F5D81 - +1 increasing, -1 decreasing }
   PlochaAlpha: Single;              { gvar_005F5D84 - oscillates between 0.1 and 0.25 }
+  SmokeSpawnTimer: Integer;         { counter for smoke particle spawning }
 
   { -- Scene/Rendering -- }
   Form1Ref: Pointer;                { gvar_005F5524 - 71 refs }

@@ -23,7 +23,7 @@ uses
   Registry, IniFiles, Math, ExtCtrls, ShellAPI,
   GLScene, GLWin32Viewer, GLCadencer, GLObjects, GLTexture,
   GLVectorFileObjects, GLHUDObjects, GLBitmapFont, GLSkyBox, GLVfsPAK,
-  GLMisc, GLGraphics,
+  GLMisc, GLGraphics, JPEG, TGA,
   fmod, fmodtypes,
   LegieTypes, SoundSystem, FMODApi, CutsceneSystem, GameTextTable;
 
@@ -97,6 +97,10 @@ type
 var
   Form1: TForm1;
 
+{ Globals that must be in Unit1 for direct address access (matching asm) }
+var
+  MapDisplayActive: Byte;           { gvar_005F5584 }
+
 { Additional globals discovered during decompilation }
 var
   DemoScreenShown: Boolean;       { gvar_005AE0CC }
@@ -123,7 +127,6 @@ var
   ByteFlag: Byte;                 { gvar_005F5D90 }
   StringVar2: AnsiString;         { gvar_005F5D94 }
   SomeCounter: Integer;           { gvar_005FE640 }
-  OrigWndProc: Longint;           { gvar_005F5DE0 }
 
 { ---- Forward declarations for standalone functions ---- }
 
@@ -143,6 +146,13 @@ procedure ClearStringState;
 procedure AppendKeyToNameInput(CzechChar: Char; StandardChar: Char);
 function CanPerformAction3: Boolean;
 procedure HandleGameState2Pick(AForm: TForm1);
+
+{ Smoke particle system }
+procedure SpawnSmokeParticle(AForm: TForm1);
+procedure UpdateSmokeParticles(AForm: TForm1);
+
+{ Scene cleanup }
+procedure ResetMapState; { 005967F4 }
 
 { Scene/level management (stubs - to be decompiled) }
 procedure ProcessClickables; { 00561E50 - 34 strings }
@@ -193,11 +203,11 @@ procedure ProcessDialogue(AForm: TForm1; DialogID: Integer); { 0057342C }
 
 { Init/lifecycle (stubs) }
 procedure LoadRegistrySettings(AForm: TForm1); { 005909A4 }
-procedure InitMaterials; { 00590B2C }
+procedure InitNewGame; { 00590B2C - resets player stats, inventory, map }
 procedure UpdateInputDisplay; { 00591C38 }
 procedure GameStepUpdate(AForm: TForm1; DeltaTime: Double); { 00592374 }
 procedure HandleMouseWheel(Direction: Integer); { 00598780 }
-procedure HandleMainMenu(AForm: TForm1); { 00598038 }
+procedure EnterMainMenu(AForm: TForm1); { 00598038 }
 procedure HandleInventoryScreen(AForm: TForm1); { 00598C28 }
 procedure HandleSaveLoad(AForm: TForm1; SlotIndex: Integer); { 00599108 }
 function ProcessAI(P: Integer): Integer; { 0059A59C }
@@ -247,8 +257,10 @@ begin
 end;
 
 procedure SetSumAppearance(Visibility: Byte; Mode: Byte);
+{ 00561C98 - Sets the 'sum' smoke overlay alpha and visibility }
 var
   Alpha: Single;
+  LibMat: TGLLibMaterial;
   SumObj: TGLBaseSceneObject;
 begin
   case Mode of
@@ -257,9 +269,14 @@ begin
   else
     Alpha := 0.6;
   end;
+
+  LibMat := TForm1(Form1Ref).MaterialyStaticke.LibMaterialByName('sum');
+  if LibMat <> nil then
+    LibMat.Material.FrontProperties.Diffuse.Alpha := Alpha;
+
   SumObj := TForm1(Form1Ref).GLScene1.Objects.FindChild('sum', False);
-  if (SumObj <> nil) and (SumObj is TGLCustomSceneObject) then
-    TGLCustomSceneObject(SumObj).Material.FrontProperties.Diffuse.Alpha := Alpha;
+  if SumObj <> nil then
+    SumObj.Visible := (Visibility <> 0);
 end;
 
 function CompareCoords2(X, Y: Integer): Boolean;
@@ -339,7 +356,17 @@ begin
   if GameState <> 2 then Exit;
   PickedObject := nil; // placeholder for GLSceneViewer pick
   ProcessPick;
-  HandleMainMenu(AForm);
+  EnterMainMenu(AForm);
+end;
+
+{ ============================================================ }
+{ Scene Cleanup Functions                                       }
+{ ============================================================ }
+
+procedure ResetMapState; {@orig 005967F4}
+begin
+  MapDisplayActive := 0;
+  ShowFadingMessage('map_');
 end;
 
 { ============================================================ }
@@ -424,6 +451,66 @@ begin { 005652EC } end;
 procedure DisplayMessage(AForm: TForm1; const Msg: AnsiString);
 begin { 005652EC alias } end;
 
+procedure SpawnSmokeParticle(AForm: TForm1);
+{ Spawns a smoke particle as TGLHUDSprite using 'kour_add' library material
+  (bmAdditive clone of 'kour', created in FormCreate).
+  Original sub_005691F0 case 0/7 uses TGLSprite on DummyCube2 with copied
+  kour texture and bmAdditive. We use a library material to achieve the same. }
+var
+  Spr: TGLHUDSprite;
+  StartSize: Single;
+begin
+  Spr := TGLHUDSprite.CreateAsChild(AForm.HUD);
+  StartSize := 32 + Random(32);
+  Spr.Width := StartSize;
+  Spr.Height := StartSize;
+  Spr.Position.X := TargetMouseX + (Random(40) - 20);
+  Spr.Position.Y := ViewerHeight - 60;
+  Spr.Material.MaterialLibrary := AForm.MaterialyStaticke;
+  Spr.Material.LibMaterialName := 'kour_add';
+  Spr.Rotation := Random(360);
+  Spr.Tag := 200;
+end;
+
+procedure UpdateSmokeParticles(AForm: TForm1);
+{ Per-frame update matching original sub_00569D40 case 0/7:
+  - Position drifts up/sideways (original: +0.0005 X/Y, +0.0009 Z per frame)
+  - Scale grows uniformly (original: Scale.X += 0.01 per frame)
+  - Alpha fades by 0.005 per frame (original: 00569E99-00569EDB)
+  - Deleted when alpha <= 0.05 }
+var
+  I: Integer;
+  Child: TGLBaseSceneObject;
+  Spr: TGLHUDSprite;
+  CurAlpha: Single;
+begin
+  for I := AForm.HUD.Count - 1 downto 0 do
+  begin
+    Child := AForm.HUD.Children[I];
+    if not (Child is TGLHUDSprite) then Continue;
+    Spr := TGLHUDSprite(Child);
+    if Spr.Name <> '' then Continue;
+
+    CurAlpha := Spr.Material.FrontProperties.Diffuse.Alpha;
+
+    if CurAlpha > 0.05 then
+    begin
+      Spr.Material.FrontProperties.Diffuse.Alpha := CurAlpha - 0.005;
+    end
+    else
+    begin
+      Spr.Free;
+      Continue;
+    end;
+
+    Spr.Position.Y := Spr.Position.Y - 0.5;
+    Spr.Position.X := Spr.Position.X + (Random(3) - 1) * 0.15;
+    Spr.Width := Spr.Width + 0.3;
+    Spr.Height := Spr.Height + 0.3;
+    Spr.Rotation := Spr.Rotation + 0.5;
+  end;
+end;
+
 procedure ShowFadingMessage(const Msg: AnsiString);
 begin { 00565DD0 } end;
 
@@ -443,7 +530,75 @@ procedure ParseScript;
 begin { 0056B8E4 - 18 strings } end;
 
 procedure LoadTexture(const Filename: AnsiString; Mode: Integer);
-begin { 0056DEBC } end;
+{ 0056DEBC - Creates a TGLLibMaterial in MaterialyStaticke, loads from PAK }
+var
+  LibMat: TGLLibMaterial;
+  Ext: AnsiString;
+  ActualName: AnsiString;
+begin
+  ActualName := Filename;
+  LibMat := TForm1(Form1Ref).MaterialyStaticke.Materials.Add;
+  LibMat.Name := ActualName;
+
+  with LibMat.Material do
+  begin
+    Texture.Disabled := False;
+    FrontProperties.Diffuse.Red := 1.0;
+    FrontProperties.Diffuse.Green := 1.0;
+    FrontProperties.Diffuse.Blue := 1.0;
+    FrontProperties.Diffuse.Alpha := 1.0;
+
+    if TextureFormatFlag = 0 then
+    begin
+      Ext := 'jpg';
+      Texture.TextureMode := tmModulate;
+      BlendingMode := bmTransparency;
+    end
+    else
+    begin
+      Ext := 'tga';
+      BlendingMode := bmTransparency;
+      Texture.TextureMode := tmModulate;
+      Texture.ImageAlpha := tiaDefault;
+    end;
+  end;
+
+  if AnsiPos('save_', ActualName) > 0 then
+    ActualName := 'save';
+
+  try
+    LibMat.Material.Texture.Image.LoadFromFile(ActualName + '.' + Ext);
+  except
+  end;
+
+  if ActualName = 'tma3' then
+    LibMat.Material.FrontProperties.Diffuse.Alpha := 0.5
+  else if ActualName = 'tma2' then
+    LibMat.Material.FrontProperties.Diffuse.Alpha := 0.85
+  else if ActualName = 'tma4' then
+    LibMat.Material.FrontProperties.Diffuse.Alpha := 0.25
+  else if ActualName = 'sum' then
+  begin
+    LibMat.Material.FrontProperties.Diffuse.Alpha := 0.6;
+    LibMat.Material.FrontProperties.Diffuse.Red := 1.0;
+    LibMat.Material.FrontProperties.Diffuse.Green := 1.0;
+    LibMat.Material.FrontProperties.Diffuse.Blue := 1.0;
+  end;
+
+  if (ActualName = 'm_0') or (ActualName = 'm_1') or (ActualName = 'm_2')
+    or (ActualName = 'm_3') or (ActualName = 'm_4') or (ActualName = 'm_6') then
+  begin
+    LibMat.Material.FrontProperties.Diffuse.Red := 0.6;
+    LibMat.Material.FrontProperties.Diffuse.Green := 0.6;
+    LibMat.Material.FrontProperties.Diffuse.Blue := 0.6;
+    LibMat.Material.FrontProperties.Diffuse.Alpha := 0.8;
+  end;
+
+  if Mode <> 0 then
+    LibMat.Material.MaterialOptions := [moIgnoreFog, moNoLighting];
+
+  LibMat.Material.Texture.ImageBrightness := 1.15;
+end;
 
 procedure LoadTextureSystem(AForm: TForm1);
 begin { 0056E508 - 46 strings } end;
@@ -452,7 +607,67 @@ procedure UpdateHUD;
 begin { 0056F06C - 94 strings, 730 asm lines } end;
 
 procedure UpdateSceneVisibility;
-begin { 00570084 - 48 strings } end;
+{ 00570084 - Registers all game materials in MaterialyStaticke }
+var
+  I: Integer;
+begin
+  TextureFormatFlag := 0;
+  LoadTexture('vyber', 1);
+  LoadTexture('zbroj', 0);
+  LoadTexture('tma2', 1);
+  LoadTexture('tma', 1);
+  LoadTexture('tma3', 1);
+  LoadTexture('tma4', 1);
+  LoadTexture('sed', 1);
+  LoadTexture('fade', 1);
+  LoadTexture('sum', 1);
+  LoadTexture('kour', 1);
+  LoadTexture('map_r', 1);
+  LoadTexture('map_x', 1);
+  LoadTexture('map_t', 1);
+  LoadTexture('map_z', 1);
+  LoadTexture('map_e', 1);
+  LoadTexture('map_s', 1);
+  LoadTexture('zdravi', 1);
+  for I := 1 to 5 do
+  begin
+    LoadTexture('save_' + IntToStr(I), 1);
+    LoadTexture('save_' + IntToStr(I) + 'g', 1);
+  end;
+  LoadTexture('save_6', 1);
+
+  TextureFormatFlag := 1;
+  LoadTexture('zdravib', 1);
+  LoadTexture('m_4', 1);
+  LoadTexture('m_6', 1);
+  LoadTexture('m_3', 1);
+  LoadTexture('m_2', 1);
+  LoadTexture('m_1', 1);
+  LoadTexture('m_0', 1);
+  LoadTexture('m_v0', 1);
+  LoadTexture('m_v1', 1);
+  LoadTexture('legie', 1);
+  LoadTexture('inv_r', 1);
+  LoadTexture('inv_l', 1);
+  LoadTexture('inventar', 1);
+  LoadTexture('kur', 1);
+  LoadTexture('kur1', 1);
+  LoadTexture('kur2', 1);
+  LoadTexture('kur3', 1);
+  LoadTexture('nic', 1);
+  for I := 1 to 39 do
+    LoadTexture('inv' + IntToStr(I), 1);
+  LoadTexture('hrdinar', 1);
+  LoadTexture('parat0', 1);
+  LoadTexture('parat1', 1);
+  LoadTexture('parat2', 1);
+  LoadTexture('oko0', 1);
+  LoadTexture('oko1', 1);
+  LoadTexture('oko2', 1);
+  LoadTexture('map_d', 1);
+  LoadTexture('map_h', 1);
+  LoadTexture('tma5', 1);
+end;
 
 procedure MoveWithCollision(P1, P2, P3, P4, P5, P6, P7: Integer);
 begin { 00570654 } end;
@@ -516,20 +731,214 @@ begin
   end;
 end;
 
-procedure InitMaterials;
+procedure InitNewGame;
 begin { 00590B2C } end;
 
 procedure UpdateInputDisplay;
 begin { 00591C38 } end;
 
-procedure GameStepUpdate(AForm: TForm1; DeltaTime: Double);
-begin { 00592374 - 35 strings, 3299 asm lines } end;
+procedure GameStepUpdate(AForm: TForm1; DeltaTime: Double); { 00592374 }
+var
+  BtnIdx: Integer;
+  SprName: AnsiString;
+  SprObj: TGLBaseSceneObject;
+  LibMat: TGLLibMaterial;
+  YFromBottom: Integer;
+  ClampedX: Integer;
+begin
+  if DeltaTime = 0.0 then Exit;
+
+  case GameState of
+    GS_MAINMENU: begin
+      MenuHoverIndex := $C8;
+
+      { Button 6: ornament top-right area }
+      if (MouseY < 100) and (MouseX > ViewerWidth - 150) then
+        MenuHoverIndex := 6;
+
+      { Button 5: smoke/version area with m_v1 positioning }
+      if (MouseY > 25) and (MouseY < 75) and
+         (MouseX > 20) and (MouseX < 190) and
+         (MouseIsDown) then
+      begin
+        MenuHoverIndex := 5;
+        ClampedX := MouseX;
+        if ClampedX < 50 then ClampedX := 50;
+        if ClampedX > 150 then ClampedX := 150;
+        SprObj := AForm.GLScene1.Objects.FindChild('m_v1', False);
+        if SprObj <> nil then
+          SprObj.Position.X := ClampedX;
+      end;
+
+      YFromBottom := ViewerHeight - MouseY;
+
+      { Button 4 }
+      if (YFromBottom >= 196) and (YFromBottom <= 231) and
+         (MouseX > TargetMouseX - 75) and (MouseX < TargetMouseX + 75) then
+        MenuHoverIndex := 4;
+
+      { Button 3 }
+      if (YFromBottom >= 232) and (YFromBottom <= 278) and
+         (MouseX > TargetMouseX - 126) and (MouseX < TargetMouseX + 126) and
+         (MenuActiveFlags <> 0) then
+        MenuHoverIndex := 3;
+
+      { Button 2 }
+      if (YFromBottom >= 279) and (YFromBottom <= 316) and
+         (MouseX > TargetMouseX - 66) and (MouseX < TargetMouseX + 66) and
+         (MenuActiveFlags <> 0) then
+        MenuHoverIndex := 2;
+
+      { Button 1 }
+      if (YFromBottom >= 317) and (YFromBottom <= 356) and
+         (MouseX > TargetMouseX - 77) and (MouseX < TargetMouseX + 77) then
+        MenuHoverIndex := 1;
+
+      { Button 0 }
+      if (YFromBottom >= 357) and (YFromBottom <= 387) and
+         (MouseX > TargetMouseX - 98) and (MouseX < TargetMouseX + 98) then
+        MenuHoverIndex := 0;
+
+      { Update library material brightness based on hover state }
+      for BtnIdx := 0 to 6 do
+      begin
+        if BtnIdx = 5 then Continue;
+        SprName := 'm_' + IntToStr(BtnIdx);
+        LibMat := AForm.MaterialyStaticke.LibMaterialByName(SprName);
+        if LibMat <> nil then
+        begin
+          with LibMat.Material.FrontProperties.Diffuse do
+          begin
+            if BtnIdx = MenuHoverIndex then
+            begin
+              Red := 1.0; Green := 1.0; Blue := 1.0; Alpha := 0.95;
+            end
+            else if BtnIdx = 6 then
+            begin
+              Red := 0.85; Green := 0.85; Blue := 0.85; Alpha := 0.80;
+            end
+            else
+            begin
+              Red := 0.60; Green := 0.60; Blue := 0.60; Alpha := 0.80;
+            end;
+          end;
+        end;
+      end;
+    end;
+  end;
+end;
 
 procedure HandleMouseWheel(Direction: Integer);
 begin { 00598780 } end;
 
-procedure HandleMainMenu(AForm: TForm1);
-begin { 00598038 - 11 strings } end;
+procedure EnterMainMenu(AForm: TForm1); {@orig 00598038}
+var
+  Spr: TGLHUDSprite;
+begin
+  MenuHoverIndex := $C8;
+  DialogueText := '';
+  SetSumAppearance(1, 0);
+  ResetMapState;
+
+  GameState := GS_MAINMENU;
+
+  Spr := TGLHUDSprite.CreateAsChild(AForm.HUD3);
+  Spr.Name := 'm_logo';
+  Spr.Position.X := TargetMouseX;
+  Spr.Position.Y := ViewerHeight - 100;
+  Spr.Material.MaterialLibrary := AForm.MaterialyStaticke;
+  Spr.Material.LibMaterialName := 'legie';
+  Spr.Width := 128;
+  Spr.Height := 512;
+  Spr.Rotation := 90;
+  Spr.Visible := True;
+
+  Spr := TGLHUDSprite.CreateAsChild(AForm.HUD3);
+  Spr.Name := 'm_4';
+  Spr.Position.X := TargetMouseX;
+  Spr.Position.Y := ViewerHeight - 210;
+  Spr.Material.MaterialLibrary := AForm.MaterialyStaticke;
+  Spr.Material.LibMaterialName := 'm_4';
+  Spr.Width := 64;
+  Spr.Height := 256;
+  Spr.Rotation := 90;
+  Spr.Visible := True;
+
+  Spr := TGLHUDSprite.CreateAsChild(AForm.HUD3);
+  Spr.Name := 'm_3';
+  Spr.Position.X := TargetMouseX;
+  Spr.Position.Y := ViewerHeight - 255;
+  Spr.Material.MaterialLibrary := AForm.MaterialyStaticke;
+  Spr.Material.LibMaterialName := 'm_3';
+  Spr.Width := 64;
+  Spr.Height := 256;
+  Spr.Rotation := 90;
+  Spr.Visible := True;
+
+  Spr := TGLHUDSprite.CreateAsChild(AForm.HUD3);
+  Spr.Name := 'm_2';
+  Spr.Position.X := TargetMouseX;
+  Spr.Position.Y := ViewerHeight - 296;
+  Spr.Material.MaterialLibrary := AForm.MaterialyStaticke;
+  Spr.Material.LibMaterialName := 'm_2';
+  Spr.Width := 64;
+  Spr.Height := 256;
+  Spr.Rotation := 90;
+  Spr.Visible := True;
+
+  Spr := TGLHUDSprite.CreateAsChild(AForm.HUD3);
+  Spr.Name := 'm_1';
+  Spr.Position.X := TargetMouseX;
+  Spr.Position.Y := ViewerHeight - 336;
+  Spr.Material.MaterialLibrary := AForm.MaterialyStaticke;
+  Spr.Material.LibMaterialName := 'm_1';
+  Spr.Width := 64;
+  Spr.Height := 256;
+  Spr.Rotation := 90;
+  Spr.Visible := True;
+
+  Spr := TGLHUDSprite.CreateAsChild(AForm.HUD3);
+  Spr.Name := 'm_0';
+  Spr.Position.X := TargetMouseX;
+  Spr.Position.Y := ViewerHeight - 375;
+  Spr.Material.MaterialLibrary := AForm.MaterialyStaticke;
+  Spr.Material.LibMaterialName := 'm_0';
+  Spr.Width := 64;
+  Spr.Height := 256;
+  Spr.Rotation := 90;
+  Spr.Visible := True;
+
+  Spr := TGLHUDSprite.CreateAsChild(AForm.HUD2);
+  Spr.Name := 'm_v0';
+  Spr.Position.X := 100;
+  Spr.Position.Y := 50;
+  Spr.Material.MaterialLibrary := AForm.MaterialyStaticke;
+  Spr.Material.LibMaterialName := 'm_v0';
+  Spr.Width := 16;
+  Spr.Height := 128;
+  Spr.Rotation := 270;
+  Spr.Visible := True;
+
+  Spr := TGLHUDSprite.CreateAsChild(AForm.HUD3);
+  Spr.Name := 'm_v1';
+  Spr.Position.X := 50;
+  Spr.Position.Y := 50;
+  Spr.Material.MaterialLibrary := AForm.MaterialyStaticke;
+  Spr.Material.LibMaterialName := 'm_v1';
+  Spr.Width := 32;
+  Spr.Height := 32;
+  Spr.Visible := True;
+
+  Spr := TGLHUDSprite.CreateAsChild(AForm.HUD2);
+  Spr.Name := 'm_o';
+  Spr.Position.X := ViewerWidth - 80;
+  Spr.Position.Y := 50;
+  Spr.Material.MaterialLibrary := AForm.MaterialyStaticke;
+  Spr.Material.LibMaterialName := 'm_6';
+  Spr.Width := 128;
+  Spr.Height := 128;
+  Spr.Visible := True;
+end;
 
 procedure HandleInventoryScreen(AForm: TForm1);
 begin { 00598C28 - 10 strings } end;
@@ -626,6 +1035,10 @@ begin
 end;
 
 procedure TForm1.FormCreate(Sender: TObject);
+var
+  SumSpr: TGLHUDSprite;
+  TileCalc: Integer;
+  KourSrc, KourAdd: TGLLibMaterial;
 begin
   DebugLog('FormCreate START');
   Form1Ref := Self;
@@ -691,12 +1104,9 @@ begin
 
   DebugLog('LoadRegistrySettings...');
   LoadRegistrySettings(Self);
-  DebugLog('InitMaterials...');
-  InitMaterials;
+  DebugLog('InitNewGame...');
+  InitNewGame;
 
-  DebugLog('Setting viewer size...');
-  GLSceneViewer1.Width := 800;
-  GLSceneViewer1.Height := 600;
   ViewerWidth := GLSceneViewer1.Width;
   ViewerHeight := GLSceneViewer1.Height;
 
@@ -709,15 +1119,100 @@ begin
     on E: Exception do DebugLog('SFX exception: ' + E.Message);
   end;
 
+  DebugLog('Registering materials...');
+  UpdateSceneVisibility;
+
+  { Create additive-blended kour material for smoke particles.
+    Original sub_005691F0 copies kour texture to sprite's own material and
+    sets bmAdditive. Since we use HUD sprites with library materials, we need
+    a separate library material with the correct blending mode. }
+  KourSrc := MaterialyStaticke.LibMaterialByName('kour');
+  if KourSrc <> nil then
+  begin
+    KourAdd := MaterialyStaticke.Materials.Add;
+    KourAdd.Name := 'kour_add';
+    KourAdd.Material.Texture.Assign(KourSrc.Material.Texture);
+    KourAdd.Material.BlendingMode := bmAdditive;
+    KourAdd.Material.MaterialOptions := [moNoLighting];
+    KourAdd.Material.FrontProperties.Diffuse.Alpha := 1.0;
+    KourAdd.Material.FrontProperties.Diffuse.Red := 1.0;
+    KourAdd.Material.FrontProperties.Diffuse.Green := 1.0;
+    KourAdd.Material.FrontProperties.Diffuse.Blue := 1.0;
+  end;
+  DebugLog('Materials registered');
+
+  Color := $292929;
+
+  TargetMouseX := GLSceneViewer1.Width div 2;
+  TargetMouseY := GLSceneViewer1.Height div 2;
+
+  DebugLog('Creating HUD sprites...');
+
+  { 'sum' sprite - smoke/overlay, tiled to cover screen }
+  { Original asm (0059132D): loop adds $80 (128) until >= ViewerWidth/Height,
+    then XTiles = counter, Width = counter shl 7 (counter * 128).
+    With ViewerWidth=724: XTiles=768, Width=98304.
+    This makes TextureOffset shifts (0..6.5) shift by <1% of tiling = subtle shimmer. }
+  SumSpr := TGLHUDSprite.CreateAsChild(HUD);
+  SumSpr.Name := 'sum';
+  SumSpr.Position.Y := TargetMouseY;
+  SumSpr.Position.X := TargetMouseX;
+  TileCalc := 0;
+  repeat Inc(TileCalc, 128) until TileCalc >= GLSceneViewer1.Width;
+  SumSpr.XTiles := TileCalc;
+  SumSpr.Width := TileCalc * 128;
+  TileCalc := 0;
+  repeat Inc(TileCalc, 128) until TileCalc >= GLSceneViewer1.Height;
+  SumSpr.YTiles := TileCalc;
+  SumSpr.Height := TileCalc * 128;
+  SumSpr.Material.MaterialLibrary := MaterialyStaticke;
+  SumSpr.Material.LibMaterialName := 'sum';
+  SumSpr.Visible := False;
+
+  { 'fade' sprite - darkness overlay }
+  with TGLHUDSprite.CreateAsChild(HUD) do
+  begin
+    Name := 'fade';
+    Position.X := TargetMouseX;
+    Position.Y := TargetMouseY;
+    Width := GLSceneViewer1.Width;
+    Height := GLSceneViewer1.Height;
+    Material.MaterialLibrary := MaterialyStaticke;
+    Material.LibMaterialName := 'tma3';
+    Visible := False;
+  end;
+
+  { 'fade2' sprite - another fade overlay }
+  with TGLHUDSprite.CreateAsChild(fadeCube) do
+  begin
+    Name := 'fade2';
+    Position.X := TargetMouseY;
+    Position.Y := TargetMouseX;
+    Width := GLSceneViewer1.Width + 100;
+    Height := GLSceneViewer1.Height + 100;
+    Material.MaterialLibrary := MaterialyStaticke;
+    Material.LibMaterialName := 'fade';
+    Visible := False;
+  end;
+  fadeCube.Visible := False;
+
+  { cursor setup }
+  kurzor.Material.MaterialLibrary := MaterialyStaticke;
+  kurzor.Material.LibMaterialName := 'kur';
+  kurzorStr.Material.MaterialLibrary := MaterialyStaticke;
+  kurzorStr.Material.LibMaterialName := 'kur1';
+  kurzorStr.Visible := False;
+
   DebugLog('FormCreate DONE');
-  // TODO: continue decompiling rest of FormCreate
-  // (model loading, HUD setup, initial scene, player init)
+
+  EnterMainMenu(Self);
+  Timer.Enabled := True;
 end;
 
 procedure TForm1.FormDestroy(Sender: TObject);
 begin
   { 005AB230 }
-  SetWindowLong(TForm1(Form1Ref).Handle, GWL_WNDPROC, OrigWndProc);
+  SetWindowLong(TForm1(Form1Ref).Handle, GWL_WNDPROC, OldWndProc);
 end;
 
 procedure TForm1.FormShow(Sender: TObject);
@@ -789,7 +1284,7 @@ begin
   { 005AB45C }
   if IsDemo and DemoScreenShown then
   begin
-    if Round(TargetMouseY) + 200 < Y then
+    if TargetMouseY + 200 < Y then
       OpenURL('legie.sudokop.com')
     else
       Close;
@@ -815,6 +1310,8 @@ end;
 procedure TForm1.TimerProgress(Sender: TObject; const deltaTime, newTime: Double);
 const
   FIXED_STEP = 0.01;
+var
+  SumLibMat: TGLLibMaterial;
 begin
   { 00595C24 - 745 asm lines, main game loop }
   if not Application.Active then
@@ -828,6 +1325,33 @@ begin
     AccumulatedTime := AccumulatedTime - FIXED_STEP;
   end;
 
+  { Cursor sprite follows mouse position }
+  kurzor.Position.X := MouseX + 17;
+  kurzor.Position.Y := MouseY + 17;
+
+  { Animate sum TextureOffset every frame (original: 00593B4A-00593BC5) }
+  begin
+    SumLibMat := MaterialyStaticke.LibMaterialByName('sum');
+    if SumLibMat <> nil then
+    begin
+      SumLibMat.TextureOffset.X := (Random(256) * Random(256)) / 10000.0;
+      SumLibMat.TextureOffset.Y := (Random(256) * Random(256)) / 10000.0;
+    end;
+  end;
+
+  { Smoke particle system for main menu }
+  if GameState = GS_MAINMENU then
+  begin
+    Inc(SmokeSpawnTimer);
+    if SmokeSpawnTimer >= 80 then
+    begin
+      SmokeSpawnTimer := 0;
+      SpawnSmokeParticle(Self);
+    end;
+  end;
+
+  UpdateSmokeParticles(Self);
+
   if not GameLoading then
   begin
     case GameState of
@@ -836,8 +1360,8 @@ begin
       end;
     end;
 
-    PrevMouseX := Round(TargetMouseX);
-    PrevMouseY := Round(TargetMouseY);
+    PrevMouseX := TargetMouseX;
+    PrevMouseY := TargetMouseY;
   end;
 end;
 
@@ -881,13 +1405,13 @@ begin
   begin
     if ScreenBottomY - 100 < MouseY then
     begin
-      if (Round(TargetMouseX) - 285 > MouseX)
+      if (TargetMouseX - 285 > MouseX)
          and (not TurningLeft) and (TurnReadyState = $FF) then
       begin
         TurnCounter := 0;
         TurningLeft := True;
       end;
-      if (Round(TargetMouseX) + 285 < MouseX)
+      if (TargetMouseX + 285 < MouseX)
          and (not TurningRight) and (TurnReadyState = $FF) then
       begin
         TurnCounter := 0;
@@ -909,8 +1433,19 @@ procedure TForm1.GLSceneViewer1MouseUp(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
   { 0059BABC - 12393 asm lines, 111 strings }
-  // TODO: decompile - largest event handler
-  // Handles all click actions: menu, inventory, dialogue, scene interaction
+  MouseIsDown := False;
+  case GameState of
+    GS_MAINMENU: begin
+      case MenuHoverIndex of
+        0: ; { New Game - stub }
+        1: ; { Load Game - stub }
+        2: ; { Save Game - stub }
+        3: ; { Settings - stub }
+        4: Close; { Exit game }
+        6: OpenURL('www.sudokop.com');
+      end;
+    end;
+  end;
 end;
 
 procedure TForm1.GLDirectOpenGL1Render(Sender: TObject;

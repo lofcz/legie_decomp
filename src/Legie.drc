@@ -21,6 +21,9 @@
 #define GLWin32Context_cContextActivationFailed 65258
 #define GLWin32Context_cContextDeactivationFailed 65259
 #define GLWin32Context_cUnableToCreateLegacyContext 65260
+#define JConsts_sChangeJPGSize 65261
+#define JConsts_sJPEGError 65262
+#define JConsts_sJPEGImageFile 65263
 #define ExtCtrls_clNameNone 65264
 #define ExtCtrls_clNameScrollBar 65265
 #define ExtCtrls_clName3DDkShadow 65266
@@ -308,6 +311,9 @@ BEGIN
 	GLWin32Context_cContextActivationFailed,	"Context activation failed: %X, %s"
 	GLWin32Context_cContextDeactivationFailed,	"Context deactivation failed"
 	GLWin32Context_cUnableToCreateLegacyContext,	"Unable to create legacy context"
+	JConsts_sChangeJPGSize,	"Cannot change the size of a JPEG image"
+	JConsts_sJPEGError,	"JPEG error #%d"
+	JConsts_sJPEGImageFile,	"JPEG Image File"
 	ExtCtrls_clNameNone,	"None"
 	ExtCtrls_clNameScrollBar,	"Scroll Bar"
 	ExtCtrls_clName3DDkShadow,	"3D Dark Shadow"

@@ -44,19 +44,30 @@ ANSI_BOLD = "\033[1m"
 # MAP file parser
 # ---------------------------------------------------------------------------
 
-def parse_map_file(map_path):
+def parse_map_file(map_path, pe=None):
     """Parse a Delphi detailed MAP file.
 
     Returns:
         publics: dict of {name: virtual_address} for all public symbols
-        code_start: the virtual address of the CODE segment start
+        image_base: the PE image base
     """
     publics = OrderedDict()
-    code_segment_base = None
     image_base = 0x00400000
 
     in_publics = False
     in_segments = False
+
+    code_rva = 0x1000
+    data_rva = None
+    if pe:
+        image_base = pe.OPTIONAL_HEADER.ImageBase
+        for section in pe.sections:
+            name = section.Name.rstrip(b"\x00").decode("ascii", errors="replace")
+            if name == ".text" or "CODE" in name.upper():
+                code_rva = section.VirtualAddress
+            if name == ".data" or name == ".bss" or "DATA" in name.upper():
+                if data_rva is None:
+                    data_rva = section.VirtualAddress
 
     with open(map_path, "r") as f:
         for line in f:
@@ -75,13 +86,6 @@ def parse_map_file(map_path):
                 in_segments = True
                 continue
 
-            if in_segments and "C=CODE" in line and code_segment_base is None:
-                m = re.match(r"\s*(\w{4}):(\w{8})", line)
-                if m:
-                    seg = int(m.group(1), 16)
-                    off = int(m.group(2), 16)
-                    code_segment_base = off
-
             if in_publics and line.strip():
                 m = re.match(r"\s*(\w{4}):(\w{8})\s+(\S+)", line)
                 if m:
@@ -89,7 +93,9 @@ def parse_map_file(map_path):
                     offset = int(m.group(2), 16)
                     name = m.group(3)
                     if seg == 1:
-                        va = image_base + 0x1000 + offset
+                        va = image_base + code_rva + offset
+                    elif seg == 2 and data_rva is not None:
+                        va = image_base + data_rva + offset
                     elif seg == 2:
                         va = image_base + offset
                     else:
@@ -140,15 +146,12 @@ def disassemble_function(pe_data, pe, func_va, func_end_va, image_base):
             "operands": insn.op_str,
         })
         if insn.mnemonic == "ret" or insn.mnemonic == "int3":
-            if func_end_va and insn.address + insn.size < func_end_va:
-                continue
-            elif not func_end_va:
-                break
+            break
 
     return instructions
 
 
-def normalize_recompiled(instructions, publics_by_va, func_va):
+def normalize_recompiled(instructions, publics_by_va, func_va, image_base=0x400000):
     """Normalize recompiled instructions for comparison.
 
     Replace absolute addresses with symbolic names where possible.
@@ -156,6 +159,11 @@ def normalize_recompiled(instructions, publics_by_va, func_va):
     va_to_name = {}
     for name, va in publics_by_va.items():
         va_to_name[va] = name
+
+    all_data_vas = {}
+    for name, va in publics_by_va.items():
+        if va < image_base + 0x1000 or va >= image_base + 0x200000:
+            all_data_vas[va] = name
 
     func_addrs = {int(ins["addr"], 16) for ins in instructions}
 
@@ -203,7 +211,7 @@ def normalize_recompiled(instructions, publics_by_va, func_va):
         for m in re.finditer(r"0x([0-9a-fA-F]{5,8})", ops):
             val = int(m.group(1), 16)
             if val in va_to_name:
-                norm = norm.replace(m.group(0), f"<{va_to_name[val]}>")
+                norm = norm.replace(m.group(0), f"<GVAR:{va_to_name[val]}>")
         ins["operands_norm"] = norm
 
     return instructions
@@ -299,20 +307,54 @@ def scan_source_annotations(src_path=None):
 
 def normalize_operand_text(ops):
     """Normalize operand text for comparison: collapse whitespace, lowercase,
-    strip 0x prefixes, normalize hex formatting."""
+    strip 0x prefixes, normalize hex formatting, remove segment prefixes."""
     s = ops.lower().strip()
     s = re.sub(r"\s+", " ", s)
     s = s.replace(", ", ",")
     s = s.replace("0x", "")
+    s = re.sub(r"\bds:", "", s)
     s = re.sub(r"\b0+([0-9a-f]+)\b", lambda m: m.group(1), s)
     return s
 
 
-def diff_instructions(orig_instrs, recomp_instrs):
+def diff_instructions(orig_instrs, recomp_instrs, fn_name_map=None):
     """Compare two instruction lists. Returns list of (status, orig, recomp) tuples.
 
     status: 'match', 'mnemonic_diff', 'operand_diff', 'orig_only', 'recomp_only'
+    fn_name_map: dict mapping original function names to recompiled names (for annotation matching)
     """
+    if fn_name_map is None:
+        fn_name_map = {}
+
+    fn_name_map_lower = {k.lower(): v.lower() for k, v in fn_name_map.items()}
+
+    def unify_operands(o_ops, r_ops):
+        """Try to match operands accounting for function name mappings and data addresses."""
+        if o_ops == r_ops:
+            return True
+
+        o_fn = re.search(r"<fn:(\S+?)>", o_ops)
+        r_fn = re.search(r"<fn:(\S+?)>", r_ops)
+        if o_fn and r_fn:
+            orig_name = o_fn.group(1).lower()
+            recomp_name = r_fn.group(1).lower()
+            if fn_name_map_lower.get(orig_name, "") == recomp_name:
+                return True
+            if orig_name == recomp_name:
+                return True
+
+        o_stripped = re.sub(r"<gvar:\w+>", "<GVAR>", o_ops)
+        r_stripped = re.sub(r"<gvar:\w+>", "<GVAR>", r_ops)
+        if o_stripped == r_stripped and "<GVAR>" in o_stripped:
+            return True
+
+        o_data = re.sub(r"\b[0-9a-f]{5,8}\b", "<IMM>", o_ops)
+        r_data = re.sub(r"\b[0-9a-f]{5,8}\b", "<IMM>", r_ops)
+        if o_data == r_data and "<IMM>" in o_data:
+            return True
+
+        return False
+
     results = []
     oi, ri = 0, 0
     while oi < len(orig_instrs) or ri < len(recomp_instrs):
@@ -333,7 +375,7 @@ def diff_instructions(orig_instrs, recomp_instrs):
         o_ops = normalize_operand_text(o.get("operands_norm", o["operands"]))
         r_ops = normalize_operand_text(r.get("operands_norm", r["operands"]))
 
-        if o_mn == r_mn and o_ops == r_ops:
+        if o_mn == r_mn and unify_operands(o_ops, r_ops):
             results.append(("match", o, r))
             oi += 1
             ri += 1
@@ -483,18 +525,9 @@ def main():
     orig_unit1 = [f for f in orig_data if f["unit"] == "Unit1"]
     print(f"  {len(orig_data)} total functions, {len(orig_unit1)} in Unit1")
 
-    map_publics = {}
-    if Path(args.map).exists():
-        print("Parsing MAP file...")
-        map_publics, image_base = parse_map_file(Path(args.map))
-        print(f"  {len(map_publics)} public symbols")
-    else:
-        print(f"WARNING: MAP file not found at {args.map}")
-        if not args.list:
-            sys.exit(1)
-
     pe_data = None
     pe = None
+    image_base = 0x400000
     if Path(args.exe).exists():
         print("Loading recompiled executable...")
         pe_data = Path(args.exe).read_bytes()
@@ -504,8 +537,25 @@ def main():
     elif not args.list:
         print(f"WARNING: Recompiled exe not found at {args.exe}")
 
+    map_publics = {}
+    if Path(args.map).exists():
+        print("Parsing MAP file...")
+        map_publics, image_base = parse_map_file(Path(args.map), pe)
+        print(f"  {len(map_publics)} public symbols")
+    else:
+        print(f"WARNING: MAP file not found at {args.map}")
+        if not args.list:
+            sys.exit(1)
+
     src_annotations = scan_source_annotations()
     print(f"  {len(src_annotations)} source annotations found")
+
+    fn_name_map = {}
+    for orig_addr, recomp_name in src_annotations.items():
+        for func in orig_data:
+            if func["address"].upper() == orig_addr.upper():
+                fn_name_map[func["name"]] = recomp_name
+                break
 
     if args.list:
         print(f"\n{'ORIG ADDR':>10s}  {'ORIG NAME':<35s}  {'RECOMP NAME':<35s}  INSTRS")
@@ -538,9 +588,9 @@ def main():
 
             next_va = get_next_func_va(recomp_name, map_publics)
             recomp_instrs = disassemble_function(pe_data, pe, recomp_va, next_va, image_base)
-            recomp_instrs = normalize_recompiled(recomp_instrs, map_publics, recomp_va)
+            recomp_instrs = normalize_recompiled(recomp_instrs, map_publics, recomp_va, image_base)
 
-            diff = diff_instructions(orig_func["instructions"], recomp_instrs)
+            diff = diff_instructions(orig_func["instructions"], recomp_instrs, fn_name_map)
             mc = sum(1 for s, _, _ in diff if s == "match")
             tc = len(diff)
             total_match += mc
@@ -615,9 +665,9 @@ def main():
     recomp_instrs = disassemble_function(pe_data, pe, recomp_va, next_va, image_base)
     print(f"  Disassembled {len(recomp_instrs)} instructions from recompiled binary")
 
-    recomp_instrs = normalize_recompiled(recomp_instrs, map_publics, recomp_va)
+    recomp_instrs = normalize_recompiled(recomp_instrs, map_publics, recomp_va, image_base)
 
-    diff = diff_instructions(orig_func["instructions"], recomp_instrs)
+    diff = diff_instructions(orig_func["instructions"], recomp_instrs, fn_name_map)
     print_diff(diff, orig_func["name"], orig_func["address"],
                show_all=not args.mismatches)
 
