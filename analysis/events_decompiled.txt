@@ -1,0 +1,947 @@
+================================================================================
+  LEGIE - Decompiled TForm1 Event Handlers
+  Source: Unit1.pas (x86 assembly → Object Pascal)
+================================================================================
+
+Key globals referenced:
+  gvar_005F5524  = Form1Ref         : TForm1 pointer
+  gvar_005F5577  = GameState        : Byte
+  gvar_005F5EE0  = MouseX           : Integer
+  gvar_005F5EE4  = MouseY           : Integer
+  gvar_005F5DF0  = TargetMouseX     : Single (used as Integer in some code)
+  gvar_005F5DF4  = TargetMouseY     : Single (used as Integer in some code)
+  gvar_005FE494  = MouseWheelDelta  : Integer
+  gvar_005F5574  = PlayerInCombat   : Boolean
+  gvar_005F5EE8  = AppPath          : AnsiString
+  gvar_005AE0C8  = IsDemo           : Boolean
+  gvar_005AE0CC  = DemoScreenShown  : Boolean
+  gvar_005AE0C4  = CzechKeyboard    : Boolean
+  gvar_005F5D4C  = InputBuffer      : AnsiString  (name-entry text)
+  gvar_005F5DE0  = OrigWndProc      : Longint     (saved WndProc)
+  gvar_005F5D30  = DemoImage        : TImage
+  gvar_005FE491  = MouseIsDown      : Boolean
+  gvar_005F5592  = TurningLeft      : Boolean
+  gvar_005F5593  = TurningRight     : Boolean
+  gvar_005F5595  = TurnReadyState   : Byte        ($FF = ready)
+  gvar_005F5590  = TurnCounter      : Word
+  gvar_005F5EF3  = IsAttacking      : Boolean
+  gvar_005F5EF2  = AttackLocked     : Boolean
+  gvar_005F5EF7  = CanForceAttack   : Boolean
+  gvar_005F5EFC  = AttackAnimTimer  : Word
+  gvar_005F5564  = AmmoCount        : Integer
+  gvar_005FE640  = SomeCounter      : Integer
+  gvar_005F554C  = ScreenBottomY    : Integer
+  gvar_005F5D48  = PickedObject     : TObject     (3D pick result)
+
+Form field offsets (from disassembler annotations):
+  [Self+$2FC] = GLSceneViewer1 : TGLSceneViewer
+  [Self+$300] = Cadencer       : TGLCadencer     (timer/animation driver)
+  [Self+$324] = zbran          : TGLActor        (weapon actor)
+
+
+================================================================================
+1. TForm1.FormDestroy  (005AB230)  —  8 asm instructions
+================================================================================
+
+--- Assembly ---
+
+  005AB230    mov     eax,[005F5DE0]          ; OrigWndProc
+  005AB235    push    eax
+  005AB236    push    0FC                     ; GWL_WNDPROC (sign-extended byte = -4)
+  005AB238    mov     eax,[005F5524]          ; Form1Ref
+  005AB23D    call    TWinControl.GetHandle
+  005AB242    push    eax
+  005AB243    call    user32.SetWindowLongA
+  005AB248    ret
+
+--- Decompiled Pascal ---
+
+procedure TForm1.FormDestroy(Sender: TObject);
+begin
+  SetWindowLong(Form1Ref.Handle, GWL_WNDPROC, OrigWndProc);
+end;
+
+{  Restores the original window procedure that was saved (and subclassed)
+   during form creation. The push 0xFC is a sign-extended byte = -4 =
+   GWL_WNDPROC.  }
+
+
+================================================================================
+2. TForm1.FormShow  (005AA29C)  —  1 asm instruction
+================================================================================
+
+--- Assembly ---
+
+  005AA29C    ret
+
+--- Decompiled Pascal ---
+
+procedure TForm1.FormShow(Sender: TObject);
+begin
+  { empty — no operation }
+end;
+
+{  Stub handler; all real initialisation happens elsewhere (FormCreate,
+   Timer1Timer, etc.).  }
+
+
+================================================================================
+3. TForm1.FormClose  (005AAD10)  —  1 asm instruction
+================================================================================
+
+--- Assembly ---
+
+  005AAD10    ret
+
+--- Decompiled Pascal ---
+
+procedure TForm1.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+  { empty — default close action (caHide/caFree) used }
+end;
+
+
+================================================================================
+4. TForm1.FormCloseQuery  (005AAD14)  —  84 asm instructions
+================================================================================
+
+--- Assembly ---
+
+  005AAD14    push    ebp
+  005AAD15    mov     ebp,esp
+  005AAD17    push    0                       ; var Path: string := ''
+  005AAD19    push    ebx
+  005AAD1A    push    esi
+  005AAD1B    mov     esi,ecx                 ; ESI = @CanClose (var param, 3rd reg)
+  005AAD1D    mov     ebx,eax                 ; EBX = Self
+  005AAD1F    xor     eax,eax
+  005AAD21    push    ebp                     ; SEH frame setup
+  005AAD22    push    5AAE37
+  005AAD27    push    dword ptr fs:[eax]
+  005AAD2A    mov     dword ptr fs:[eax],esp
+  005AAD2D    cmp     byte ptr ds:[5AE0C8],0  ; IsDemo
+  005AAD34    je      005AADF9                ; → else branch (not demo)
+  005AAD3A    cmp     byte ptr ds:[5AE0CC],0  ; DemoScreenShown
+  005AAD41    jne     005AADF9                ; → else branch (already shown)
+  ; --- Demo nag screen ---
+  005AAD47    xor     edx,edx
+  005AAD49    mov     eax,[ebx+2FC]           ; Self.GLSceneViewer1
+  005AAD4F    call    TControl.SetVisible     ; .Visible := False
+  005AAD54    xor     edx,edx
+  005AAD56    mov     eax,[ebx+300]           ; Self.Cadencer
+  005AAD5C    call    TGLCadencer.SetEnabled  ; .Enabled := False
+  005AAD61    mov     ecx,[005F5524]          ; Form1Ref (Owner)
+  005AAD67    mov     dl,1
+  005AAD69    mov     eax,[004312FC]          ; TImage class
+  005AAD6E    call    TImage.Create
+  005AAD73    mov     [005F5D30],eax          ; DemoImage := result
+  005AAD78    lea     eax,[ebp-4]
+  005AAD7B    mov     ecx,5AAE4C              ; '\demo.jpg'
+  005AAD80    mov     edx,[005F5EE8]          ; AppPath
+  005AAD86    call    @LStrCat3               ; Path := AppPath + '\demo.jpg'
+  005AAD8B    mov     edx,[ebp-4]
+  005AAD8E    mov     eax,[005F5D30]
+  005AAD93    mov     eax,[eax+168]           ; DemoImage.Picture
+  005AAD99    call    00428DC8                ; Picture.LoadFromFile(Path)
+  005AAD9E    mov     dl,5
+  005AADA0    mov     eax,[005F5D30]
+  005AADA5    call    TControl.SetAlign       ; .Align := alClient (5)
+  005AADAA    mov     dl,1
+  005AADAC    mov     eax,[005F5D30]
+  005AADB1    call    TImage.SetCenter        ; .Center := True
+  005AADB6    mov     dl,1
+  005AADB8    mov     eax,[005F5D30]
+  005AADBD    call    TControl.SetVisible     ; .Visible := True
+  005AADC2    mov     edx,[005F5524]          ; Form1Ref
+  005AADC8    mov     eax,[005F5D30]
+  005AADCD    mov     ecx,[eax]               ; VMT
+  005AADCF    call    [ecx+68]               ; virtual SetParent(Form1Ref)
+  005AADD2    mov     edx,5AAE60              ; 'demo'
+  005AADD7    mov     eax,[005F5D30]
+  005AADDC    mov     ecx,[eax]
+  005AADDE    call    [ecx+18]               ; virtual SetName('demo')
+  005AADE1    xor     edx,edx
+  005AADE3    mov     eax,[005F5D30]
+  005AADE8    mov     ecx,[eax]
+  005AADEA    call    [ecx+64]               ; virtual method (BringToFront / SetEnabled(False))
+  005AADED    mov     byte ptr ds:[5AE0CC],1 ; DemoScreenShown := True
+  005AADF4    mov     byte ptr [esi],0       ; CanClose := False
+  005AADF7    jmp     005AAE21               ; → finally
+  ; --- Normal close (not demo or demo already shown) ---
+  005AADF9    xor     edx,edx
+  005AADFB    mov     eax,[ebx+300]           ; Self.Cadencer
+  005AAE01    call    TGLCadencer.SetEnabled  ; .Enabled := False
+  005AAE06    call    00565EB4                ; SaveSettings
+  005AAE0B    call    005612D8                ; CleanupProc1
+  005AAE10    call    005612FC                ; CleanupProc2
+  005AAE15    call    00560464                ; CleanupProc3
+  005AAE1A    mov     eax,ebx                 ; Self
+  005AAE1C    call    005AB3C0                ; FinalCleanup(Self)
+  ; --- finally ---
+  005AAE21    xor     eax,eax
+  005AAE23    pop     edx
+  005AAE24    pop     ecx
+  005AAE25    pop     ecx
+  005AAE26    mov     dword ptr fs:[eax],edx  ; SEH teardown
+  005AAE29    push    5AAE3E
+  005AAE2E    lea     eax,[ebp-4]
+  005AAE31    call    @LStrClr                ; finalize Path string
+  005AAE36    ret
+  005AAE37    jmp     @HandleFinally
+  005AAE3C    jmp     005AAE2E
+  005AAE3E    pop     esi
+  005AAE3F    pop     ebx
+  005AAE40    pop     ecx
+  005AAE41    pop     ebp
+  005AAE42    ret
+
+--- Decompiled Pascal ---
+
+procedure TForm1.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+var
+  Path: string;
+begin
+  if IsDemo and (not DemoScreenShown) then
+  begin
+    GLSceneViewer1.Visible := False;
+    Cadencer.Enabled := False;
+
+    DemoImage := TImage.Create(Form1Ref);
+    Path := AppPath + '\demo.jpg';
+    DemoImage.Picture.LoadFromFile(Path);
+    DemoImage.Align := alClient;
+    DemoImage.Center := True;
+    DemoImage.Visible := True;
+    DemoImage.Parent := Form1Ref;
+    DemoImage.Name := 'demo';
+    DemoImage.BringToFront;  { virtual call [VMT+$64], EDX=0 }
+
+    DemoScreenShown := True;
+    CanClose := False;       { block close — show demo ad instead }
+  end
+  else
+  begin
+    Cadencer.Enabled := False;
+    sub_00565EB4;            { save settings / registry }
+    sub_005612D8;            { cleanup #1 }
+    sub_005612FC;            { cleanup #2 }
+    sub_00560464;            { cleanup #3 }
+    sub_005AB3C0(Self);      { final cleanup }
+    { CanClose stays True — form will close }
+  end;
+end;
+
+{  In the demo build, the first close attempt replaces the 3D view with
+   a full-screen "demo.jpg" ad image and refuses to close. A second
+   close attempt (or a keypress — see FormKeyPress) takes the normal
+   shutdown path.  }
+
+
+================================================================================
+5. TForm1.FormKeyPress  (005AB4B4)  —  6 asm instructions
+================================================================================
+
+--- Assembly ---
+
+  005AB4B4    cmp     byte ptr ds:[5AE0C8],0  ; IsDemo
+  005AB4BB    je      005AB4CB                ; not demo → skip
+  005AB4BD    cmp     byte ptr ds:[5AE0CC],0  ; DemoScreenShown
+  005AB4C4    je      005AB4CB                ; not shown yet → skip
+  005AB4C6    call    TCustomForm.Close       ; Close the form
+  005AB4CB    ret
+
+--- Decompiled Pascal ---
+
+procedure TForm1.FormKeyPress(Sender: TObject; var Key: Char);
+begin
+  if IsDemo and DemoScreenShown then
+    Close;
+end;
+
+{  Any keypress while the demo ad image is displayed dismisses it and
+   closes the application (CanClose will be True on second pass).  }
+
+
+================================================================================
+6. TForm1.FormMouseUp  (005AB45C)  —  16 asm instructions
+================================================================================
+
+--- Assembly ---
+
+  005AB45C    push    ebp
+  005AB45D    mov     ebp,esp
+  005AB45F    cmp     byte ptr ds:[5AE0C8],0  ; IsDemo
+  005AB466    je      005AB493                ; not demo → exit
+  005AB468    cmp     byte ptr ds:[5AE0CC],0  ; DemoScreenShown
+  005AB46F    je      005AB493                ; not shown → exit
+  005AB471    mov     edx,[005F5DF4]          ; gvar_005F5DF4 (Y offset, used as int)
+  005AB477    add     edx,0C8                 ; + 200
+  005AB47D    cmp     edx,[ebp+8]             ; compare with Y parameter
+  005AB480    jge     005AB48E                ; if (offset+200) >= Y → Close
+  005AB482    mov     eax,5AB4A0              ; 'legie.sudokop.com'
+  005AB487    call    005504E8                ; OpenURL(...)
+  005AB48C    jmp     005AB493
+  005AB48E    call    TCustomForm.Close
+  005AB493    pop     ebp
+  005AB494    ret     0C                      ; clean 3 stack params
+
+  ; Stack layout (Delphi register conv, stack params L→R):
+  ;   [ebp+8]  = Y   (rightmost stack param = lowest address)
+  ;   [ebp+0C] = X
+  ;   [ebp+10] = Shift
+
+--- Decompiled Pascal ---
+
+procedure TForm1.FormMouseUp(Sender: TObject; Button: TMouseButton;
+  Shift: TShiftState; X, Y: Integer);
+begin
+  if IsDemo and DemoScreenShown then
+  begin
+    if gvar_005F5DF4 + 200 < Y then
+      OpenURL('legie.sudokop.com')   { click on bottom banner → website }
+    else
+      Close;                          { click above banner → dismiss }
+  end;
+end;
+
+{  On the demo nag screen, clicking the lower portion (below the ad
+   image boundary + 200px) opens the game's website; clicking above
+   that line closes the form.  }
+
+
+================================================================================
+7. TForm1.FormMouseWheelUp  (005AA2D4)  —  21 asm instructions
+================================================================================
+
+--- Assembly ---
+
+  005AA2D4    push    ebp
+  005AA2D5    mov     ebp,esp
+  005AA2D7    add     esp,0FFFFFFF8           ; allocate 8 bytes (local TPoint)
+  005AA2DA    push    esi
+  005AA2DB    push    edi
+  005AA2DC    mov     esi,[ebp+0C]            ; pointer to MousePos (TPoint)
+  005AA2DF    lea     edi,[ebp-8]             ; local TPoint copy
+  005AA2E2    movsd                           ; copy MousePos.X
+  005AA2E3    movsd                           ; copy MousePos.Y
+  005AA2E4    cmp     byte ptr ds:[5F5592],0  ; TurningLeft
+  005AA2EB    jne     005AA2FE                ; if turning left → skip
+  005AA2ED    cmp     byte ptr ds:[5F5593],0  ; TurningRight
+  005AA2F4    jne     005AA2FE                ; if turning right → skip
+  005AA2F6    or      edx,0FFFFFFFF           ; EDX = -1 (direction = up)
+  005AA2F9    call    00598780                ; HandleMouseWheel(Self, -1)
+  005AA2FE    pop     edi
+  005AA2FF    pop     esi
+  005AA300    pop     ecx
+  005AA301    pop     ecx
+  005AA302    pop     ebp
+  005AA303    ret     8                       ; clean 2 stack params
+
+--- Decompiled Pascal ---
+
+procedure TForm1.FormMouseWheelUp(Sender: TObject; Shift: TShiftState;
+  MousePos: TPoint; var Handled: Boolean);
+begin
+  if (not TurningLeft) and (not TurningRight) then
+    HandleMouseWheel(-1);  { sub_00598780: scroll/zoom up }
+end;
+
+{  Scrolls/zooms only when the player is not in a turning animation.
+   EAX = Self (unchanged from entry), EDX = -1 = scroll up direction.  }
+
+
+================================================================================
+8. TForm1.FormMouseWheelDown  (005AA2A0)  —  21 asm instructions
+================================================================================
+
+--- Assembly ---
+
+  005AA2A0    push    ebp
+  005AA2A1    mov     ebp,esp
+  005AA2A3    add     esp,0FFFFFFF8           ; allocate 8 bytes (local TPoint)
+  005AA2A6    push    esi
+  005AA2A7    push    edi
+  005AA2A8    mov     esi,[ebp+0C]            ; pointer to MousePos
+  005AA2AB    lea     edi,[ebp-8]             ; local copy
+  005AA2AE    movsd                           ; copy X
+  005AA2AF    movsd                           ; copy Y
+  005AA2B0    cmp     byte ptr ds:[5F5592],0  ; TurningLeft
+  005AA2B7    jne     005AA2C9                ; if turning → skip
+  005AA2B9    cmp     byte ptr ds:[5F5593],0  ; TurningRight
+  005AA2C0    jne     005AA2C9                ; if turning → skip
+  005AA2C2    mov     dl,1                    ; DL = 1 (direction = down)
+  005AA2C4    call    00598780                ; HandleMouseWheel(Self, 1)
+  005AA2C9    pop     edi
+  005AA2CA    pop     esi
+  005AA2CB    pop     ecx
+  005AA2CC    pop     ecx
+  005AA2CD    pop     ebp
+  005AA2CE    ret     8
+
+--- Decompiled Pascal ---
+
+procedure TForm1.FormMouseWheelDown(Sender: TObject; Shift: TShiftState;
+  MousePos: TPoint; var Handled: Boolean);
+begin
+  if (not TurningLeft) and (not TurningRight) then
+    HandleMouseWheel(1);   { sub_00598780: scroll/zoom down }
+end;
+
+{  Identical structure to WheelUp, but direction = 1 (down).  }
+
+
+================================================================================
+9. TForm1.ComboBox4Change  (005AA298)  —  1 asm instruction
+================================================================================
+
+--- Assembly ---
+
+  005AA298    ret
+
+--- Decompiled Pascal ---
+
+procedure TForm1.ComboBox4Change;
+begin
+  { empty — no operation }
+end;
+
+{  Likely a placeholder or the combo box drives behaviour indirectly
+   (its ItemIndex is read elsewhere rather than in its OnChange).  }
+
+
+================================================================================
+10. TForm1.Actor1Progress  (005A8EB8)  —  4 asm instructions
+================================================================================
+
+--- Assembly ---
+
+  005A8EB8    push    ebp
+  005A8EB9    mov     ebp,esp
+  005A8EBB    pop     ebp
+  005A8EBC    ret     10              ; clean 16 bytes of stack params
+
+  ; ret 10h = 16 bytes = Sender(4, in EDX) not on stack; the 16 bytes
+  ; are the two Double parameters (deltaTime, newTime) = 8+8 = 16.
+
+--- Decompiled Pascal ---
+
+procedure TForm1.Actor1Progress(Sender: TObject;
+  const deltaTime, newTime: Double);
+begin
+  { empty — no operation }
+end;
+
+{  GLScene TGLActor progress callback. Not used; animation is driven
+   by the cadencer's own progress events instead.  }
+
+
+================================================================================
+11. TForm1.GLDirectOpenGL1Render  (005A8EC0)  —  1 asm instruction
+================================================================================
+
+--- Assembly ---
+
+  005A8EC0    ret
+
+--- Decompiled Pascal ---
+
+procedure TForm1.GLDirectOpenGL1Render(Sender: TObject;
+  var rci: TRenderContextInfo);
+begin
+  { empty — no custom OpenGL rendering }
+end;
+
+{  Placeholder for direct OpenGL calls within the GLScene render loop.
+   All rendering is handled by GLScene objects in the scene graph.  }
+
+
+================================================================================
+12. TForm1.GLSceneViewer1MouseMove  (00591C1C)  —  8 asm instructions
+================================================================================
+
+--- Assembly ---
+
+  00591C1C    push    ebp
+  00591C1D    mov     ebp,esp
+  00591C1F    mov     eax,[ebp+0C]            ; X (stack param)
+  00591C22    mov     [005F5EE0],eax          ; MouseX := X
+  00591C27    mov     eax,[ebp+8]             ; Y (stack param)
+  00591C2A    mov     [005F5EE4],eax          ; MouseY := Y
+  00591C2F    pop     ebp
+  00591C30    ret     8                       ; clean 2 stack params
+
+  ; Delphi register conv: Self=EAX, Sender=EDX, Shift=ECX
+  ; Stack (L→R push → rightmost at lowest addr):
+  ;   [ebp+8]  = Y
+  ;   [ebp+0C] = X
+
+--- Decompiled Pascal ---
+
+procedure TForm1.GLSceneViewer1MouseMove(Sender: TObject;
+  Shift: TShiftState; X, Y: Integer);
+begin
+  MouseX := X;
+  MouseY := Y;
+end;
+
+{  Tracks the mouse position in global variables so other code
+   (rendering, picking, UI) can read the current cursor location.  }
+
+
+================================================================================
+13. TForm1.GLSceneViewer1MouseDown  (00591AAC)  —  92 asm instructions
+================================================================================
+
+--- Assembly ---
+
+  00591AAC    push    ebp
+  00591AAD    mov     ebp,esp
+  00591AAF    push    0                       ; [ebp-4] local string 1
+  00591AB1    push    0                       ; [ebp-8] local string 2
+  00591AB3    push    ebx
+  00591AB4    push    esi
+  00591AB5    mov     ebx,ecx                ; EBX = Button (3rd reg param)
+  00591AB7    mov     esi,eax                ; ESI = Self
+  00591AB9    xor     eax,eax
+  00591ABB    push    ebp                    ; SEH frame
+  00591ABC    push    591BFA
+  00591AC1    push    dword ptr fs:[eax]
+  00591AC4    mov     dword ptr fs:[eax],esp
+  ; ---- body ----
+  00591AC7    mov     byte ptr ds:[5FE491],1 ; MouseIsDown := True
+  00591ACE    cmp     byte ptr ds:[5F5577],1 ; GameState = 1 (combat)
+  00591AD5    jne     00591B5E               ; → skip combat block
+  00591ADB    cmp     bl,1                   ; Button = mbRight
+  00591ADE    jne     00591B5E
+  00591AE0    cmp     byte ptr ds:[5F5EF3],0 ; IsAttacking
+  00591AE7    jne     00591B5E
+  00591AE9    cmp     byte ptr ds:[5F5EF2],0 ; AttackLocked
+  00591AF0    jne     00591B5E
+  00591AF2    cmp     word ptr ds:[5F5EFC],0 ; AttackAnimTimer
+  00591AFA    jne     00591B19               ; timer running → skip anim check
+  ; --- timer=0: check weapon animation name ---
+  00591AFC    lea     edx,[ebp-4]
+  00591AFF    mov     eax,[esi+324]          ; Self.zbran (weapon actor)
+  00591B05    call    004963DC               ; GetCurrentAnimationName(out s)
+  00591B0A    mov     eax,[ebp-4]
+  00591B0D    mov     edx,591C14             ; 'ceka'  ("waiting")
+  00591B12    call    @LStrCmp
+  00591B17    je      00591B22               ; animation = 'ceka' → ready
+  ; --- animation <> 'ceka', or timer <> 0 ---
+  00591B19    cmp     byte ptr ds:[5F5EF7],0 ; CanForceAttack
+  00591B20    je      00591B5E               ; not force-able → skip
+  ; --- weapon ready or forced: check ammo ---
+  00591B22    cmp     dword ptr ds:[5F5564],0 ; AmmoCount
+  00591B29    jle     00591B5E                ; no ammo → skip
+  00591B2B    mov     al,1
+  00591B2D    call    00562D80               ; TryStartAttack(True)
+  00591B32    test    eax,eax
+  00591B34    jne     00591B4E               ; success → begin attack
+  ; --- attack blocked: show message ---
+  00591B36    lea     edx,[ebp-8]
+  00591B39    mov     ax,76                  ; string ID 118 ($76)
+  00591B3D    call    00550A18               ; GetStringByID → string
+  00591B42    mov     edx,[ebp-8]
+  00591B45    mov     eax,esi                ; Self
+  00591B47    call    005652EC               ; DisplayMessage(Self, text)
+  00591B4C    jmp     00591B5E
+  ; --- attack started ---
+  00591B4E    mov     byte ptr ds:[5F5EF3],1 ; IsAttacking := True
+  00591B55    mov     word ptr ds:[5F5EFC],23 ; AttackAnimTimer := 35
+  ; ==== Navigation mode (GameState = 15) ====
+  00591B5E    cmp     byte ptr ds:[5F5577],0F ; GameState = 15
+  00591B65    jne     00591BDF                ; → skip
+  00591B67    mov     eax,[005F554C]          ; ScreenBottomY
+  00591B6C    sub     eax,64                  ; - 100
+  00591B6F    cmp     eax,[005F5EE4]          ; cmp with MouseY
+  00591B75    jge     00591BDF                ; click too high → skip
+  ; --- click is in lower portion (below ScreenBottomY - 100) ---
+  00591B77    mov     eax,[005F5DF0]          ; TargetMouseX
+  00591B7C    sub     eax,11D                 ; - 285
+  00591B81    cmp     eax,[005F5EE0]          ; cmp with MouseX
+  00591B87    jle     00591BAB                ; MouseX >= threshold → skip left
+  ; --- MouseX < TargetMouseX-285: turn left ---
+  00591B89    cmp     byte ptr ds:[5F5592],0  ; TurningLeft
+  00591B90    jne     00591BAB                ; already turning → skip
+  00591B92    cmp     byte ptr ds:[5F5595],0FF ; TurnReadyState = $FF
+  00591B99    jne     00591BAB                ; not ready → skip
+  00591B9B    mov     word ptr ds:[5F5590],0  ; TurnCounter := 0
+  00591BA4    mov     byte ptr ds:[5F5592],1  ; TurningLeft := True
+  ; --- check right turn ---
+  00591BAB    mov     eax,[005F5DF0]          ; TargetMouseX
+  00591BB0    add     eax,11D                 ; + 285
+  00591BB5    cmp     eax,[005F5EE0]          ; cmp with MouseX
+  00591BBB    jge     00591BDF                ; MouseX <= threshold → skip right
+  ; --- MouseX > TargetMouseX+285: turn right ---
+  00591BBD    cmp     byte ptr ds:[5F5593],0  ; TurningRight
+  00591BC4    jne     00591BDF                ; already turning
+  00591BC6    cmp     byte ptr ds:[5F5595],0FF ; TurnReadyState = $FF
+  00591BCD    jne     00591BDF                ; not ready
+  00591BCF    mov     word ptr ds:[5F5590],0  ; TurnCounter := 0
+  00591BD8    mov     byte ptr ds:[5F5593],1  ; TurningRight := True
+  ; ---- finally ----
+  00591BDF    xor     eax,eax
+  00591BE1    pop     edx
+  00591BE2    pop     ecx
+  00591BE3    pop     ecx
+  00591BE4    mov     dword ptr fs:[eax],edx  ; SEH teardown
+  00591BE7    push    591C01
+  00591BEC    lea     eax,[ebp-8]
+  00591BEF    mov     edx,2
+  00591BF4    call    @LStrArrayClr           ; free 2 local strings
+  00591BF9    ret
+  00591BFA    jmp     @HandleFinally
+  00591BFF    jmp     00591BEC
+  00591C01    pop     esi
+  00591C02    pop     ebx
+  00591C03    pop     ecx
+  00591C04    pop     ecx
+  00591C05    pop     ebp
+  00591C06    ret     0C
+
+--- Decompiled Pascal ---
+
+procedure TForm1.GLSceneViewer1MouseDown(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+var
+  AnimName: string;
+  Msg: string;
+begin
+  MouseIsDown := True;
+
+  { === Combat mode === }
+  if (GameState = 1) and (Button = mbRight)
+     and (not IsAttacking) and (not AttackLocked) then
+  begin
+    if AttackAnimTimer <> 0 then
+    begin
+      if not CanForceAttack then
+        goto SkipCombat;
+    end
+    else
+    begin
+      AnimName := zbran.GetCurrentAnimationName;
+      if (AnimName <> 'ceka') and (not CanForceAttack) then
+        goto SkipCombat;
+    end;
+
+    if AmmoCount > 0 then
+    begin
+      if TryStartAttack(True) <> 0 then   { sub_00562D80 }
+      begin
+        IsAttacking := True;
+        AttackAnimTimer := 35;             { $23 frames }
+      end
+      else
+      begin
+        Msg := GetStringByID(118);         { sub_00550A18($76) }
+        DisplayMessage(Self, Msg);         { sub_005652EC }
+      end;
+    end;
+  end;
+SkipCombat:
+
+  { === Navigation mode === }
+  if GameState = 15 then
+  begin
+    if ScreenBottomY - 100 < MouseY then  { click in lower area }
+    begin
+      { Left turn }
+      if (TargetMouseX - 285 > MouseX)
+         and (not TurningLeft)
+         and (TurnReadyState = $FF) then
+      begin
+        TurnCounter := 0;
+        TurningLeft := True;
+      end;
+
+      { Right turn }
+      if (TargetMouseX + 285 < MouseX)
+         and (not TurningRight)
+         and (TurnReadyState = $FF) then
+      begin
+        TurnCounter := 0;
+        TurningRight := True;
+      end;
+    end;
+  end;
+end;
+
+{  Two independent blocks:
+   1) Combat (GameState=1): right-click fires the weapon if the weapon
+      animation is in "ceka" (idle/waiting) state, ammo is available,
+      and the attack system allows it. Otherwise shows a blocked message.
+   2) Navigation (GameState=15): clicking in the bottom margin starts
+      a turning animation left/right if the cursor is far enough from
+      the screen centre (±285px from TargetMouseX) and no turn is
+      already in progress.
+   'ceka' is Czech for "waits/waiting" — the weapon idle animation.  }
+
+
+================================================================================
+14. TForm1.Timer1Timer  (00591C34)  —  1 asm instruction
+================================================================================
+
+--- Assembly ---
+
+  00591C34    ret
+
+--- Decompiled Pascal ---
+
+procedure TForm1.Timer1Timer(Sender: TObject);
+begin
+  { empty — no operation }
+end;
+
+{  Timer tick stub. The actual game loop is driven by the GLScene
+   TGLCadencer, not this TTimer.  }
+
+
+================================================================================
+15. sub_005AAE68  (005AAE68)  —  63 asm instructions  (name-input helper)
+================================================================================
+
+--- Assembly ---
+
+  005AAE68    push    ebp
+  005AAE69    mov     ebp,esp
+  005AAE6B    push    0                       ; [ebp-4..ebp-1] locals
+  005AAE6D    push    0                       ; [ebp-8] local string 1
+  005AAE6F    push    0                       ; [ebp-C] local string 2
+  005AAE71    push    ebx
+  005AAE72    mov     ebx,edx                ; EBX = StandardChar (EDX param)
+  005AAE74    mov     [ebp-1],al              ; [ebp-1] = CzechChar (AL param)
+  005AAE77    xor     eax,eax
+  005AAE79    push    ebp                    ; SEH frame
+  005AAE7A    push    5AAF16
+  005AAE7F    push    dword ptr fs:[eax]
+  005AAE82    mov     dword ptr fs:[eax],esp
+  005AAE85    mov     eax,[005F5D4C]         ; InputBuffer
+  005AAE8A    call    @LStrLen
+  005AAE8F    cmp     eax,1E                 ; Length >= 30?
+  005AAE92    jge     005AAEFB               ; → exit (buffer full)
+  005AAE94    cmp     byte ptr ds:[5AE0C4],0 ; CzechKeyboard
+  005AAE9B    je      005AAEB4               ; not Czech → skip Y/Z swap
+  ; --- Czech keyboard Y↔Z swap ---
+  005AAE9D    mov     al,[ebp-1]             ; CzechChar
+  005AAEA0    sub     al,59                  ; - 'Y'
+  005AAEA2    je      005AAEAA               ; = 'Y' → change to 'Z'
+  005AAEA4    dec     al                     ; check 'Z' (= 'Y'+1)
+  005AAEA6    je      005AAEB0               ; = 'Z' → change to 'Y'
+  005AAEA8    jmp     005AAEB4               ; else → no swap
+  005AAEAA    mov     byte ptr [ebp-1],5A    ; CzechChar := 'Z'
+  005AAEAE    jmp     005AAEB4
+  005AAEB0    mov     byte ptr [ebp-1],59    ; CzechChar := 'Y'
+  ; --- space handling ---
+  005AAEB4    cmp     bl,20                  ; StandardChar = ' ' ?
+  005AAEB7    jne     005AAEBC               ; no → keep it
+  005AAEB9    mov     bl,[ebp-1]             ; StandardChar := CzechChar
+  ; --- append character ---
+  005AAEBC    cmp     byte ptr ds:[5AE0C4],0 ; CzechKeyboard
+  005AAEC3    jne     005AAEDF               ; Czech → append StandardChar
+  ; not Czech: append CzechChar
+  005AAEC5    lea     eax,[ebp-8]
+  005AAEC8    mov     dl,[ebp-1]
+  005AAECB    call    @LStrFromChar
+  005AAED0    mov     edx,[ebp-8]
+  005AAED3    mov     eax,5F5D4C             ; @InputBuffer
+  005AAED8    call    @LStrCat
+  005AAEDD    jmp     005AAEF6
+  ; Czech: append StandardChar
+  005AAEDF    lea     eax,[ebp-0C]
+  005AAEE2    mov     edx,ebx                ; BL = StandardChar
+  005AAEE4    call    @LStrFromChar
+  005AAEE9    mov     edx,[ebp-0C]
+  005AAEEC    mov     eax,5F5D4C             ; @InputBuffer
+  005AAEF1    call    @LStrCat
+  ; --- update display ---
+  005AAEF6    call    00591C38               ; UpdateInputDisplay
+  ; --- finally ---
+  005AAEFB    xor     eax,eax
+  005AAEFD    pop     edx
+  005AAEFE    pop     ecx
+  005AAEFF    pop     ecx
+  005AAF00    mov     dword ptr fs:[eax],edx
+  005AAF03    push    5AAF1D
+  005AAF08    lea     eax,[ebp-0C]
+  005AAF0B    mov     edx,2
+  005AAF10    call    @LStrArrayClr          ; free 2 local strings
+  005AAF15    ret
+  005AAF16    jmp     @HandleFinally
+  005AAF1B    jmp     005AAF08
+  005AAF1D    pop     ebx
+  005AAF1E    mov     esp,ebp
+  005AAF20    pop     ebp
+  005AAF21    ret
+
+--- Calling Convention ---
+
+  AL  = CzechChar   (the character on Czech keyboard layout for this key)
+  EDX = StandardChar (the standard/digit character for this key)
+
+  Called from FormKeyDown switch table, e.g.:
+    mov dl, $31   ; '1'
+    mov al, $21   ; '!'  (Czech layout: Shift+1)
+    call sub_005AAE68
+
+  Number keys 1-0 map to Czech diacritics:
+    '1' → '!'($21)   '2' → 'ě'($EC)   '3' → 'š'($9A)   '4' → 'č'($E8)
+    '5' → 'ř'($F8)   '6' → 'ž'($9E)   '7' → 'ý'($FD)   '8' → 'á'($E1)
+    '9' → 'í'($ED)   '0' → 'é'($E9)
+  (Windows-1250 code page values)
+
+--- Decompiled Pascal ---
+
+procedure AppendKeyToNameInput(CzechChar: Char; StandardChar: Char);
+{ sub_005AAE68 — appends a character to the name-entry input buffer,
+  handling Czech QWERTZ ↔ QWERTY keyboard mapping. }
+begin
+  if Length(InputBuffer) >= 30 then
+    Exit;
+
+  if CzechKeyboard then
+  begin
+    { QWERTZ layout: swap Y and Z }
+    case CzechChar of
+      'Y': CzechChar := 'Z';
+      'Z': CzechChar := 'Y';
+    end;
+  end;
+
+  { Space as StandardChar means "no distinct standard char" (numpad etc.)
+    — fall back to the Czech/primary character. }
+  if StandardChar = ' ' then
+    StandardChar := CzechChar;
+
+  if not CzechKeyboard then
+    InputBuffer := InputBuffer + CzechChar
+  else
+    InputBuffer := InputBuffer + StandardChar;
+
+  UpdateInputDisplay;  { sub_00591C38 }
+end;
+
+{  The function supports dual-layout name entry. When CzechKeyboard is
+   off, pressing '2' types the Czech accented char (ě). When on,
+   pressing '2' types '2'. The Y/Z swap handles the physical key
+   difference between QWERTY and QWERTZ keyboards.
+   Maximum name length = 30 characters.  }
+
+
+================================================================================
+16. sub_005AB214  (005AB214)  —  10 asm instructions
+================================================================================
+
+--- Assembly ---
+
+  005AB214    cmp     dword ptr ds:[5FE640],0  ; SomeCounter
+  005AB21B    jle     005AB228                 ; if <= 0 → return False
+  005AB21D    mov     al,3
+  005AB21F    call    00562D80                 ; sub_00562D80(3)
+  005AB224    test    eax,eax
+  005AB226    jg      005AB22B                 ; if > 0 → return True
+  005AB228    xor     eax,eax                  ; Result := False (0)
+  005AB22A    ret
+  005AB22B    mov     al,1                     ; Result := True (1)
+  005AB22D    ret
+
+--- Calling context ---
+
+  Called from multiple places:
+    0056246A    call 005AB214
+    00569AA5    call 005AB214
+    0056B7E2    call 005AB214
+    0057362A    call 005AB214
+    00591D32    call 005AB214
+    005A3D24    call 005AB214
+
+--- Decompiled Pascal ---
+
+function CanPerformAction3: Boolean;
+{ sub_005AB214 — checks whether "action type 3" is available.
+  Used as a guard before certain game operations. }
+begin
+  if (gvar_005FE640 > 0) and (sub_00562D80(3) > 0) then
+    Result := True
+  else
+    Result := False;
+end;
+
+{  gvar_005FE640 may be a resource count or prerequisite counter.
+   sub_00562D80 is a shared action-feasibility checker: it is also
+   called with param=1 (from GLSceneViewer1MouseDown combat code).
+   Returns > 0 when the action is allowed.  }
+
+
+================================================================================
+17. sub_0059874C  (0059874C)  —  15 asm instructions
+================================================================================
+
+--- Assembly ---
+
+  0059874C    push    ebx
+  0059874D    mov     ebx,eax                ; EBX = Self (TForm1)
+  0059874F    cmp     byte ptr ds:[5F5577],2 ; GameState = 2
+  00598756    jne     0059877D               ; not state 2 → exit
+  00598758    call    005627BC               ; SomeConditionCheck → Boolean in AL
+  0059875D    test    al,al
+  0059875F    je      0059877D               ; condition false → exit
+  00598761    mov     eax,[ebx+2FC]          ; Self.GLSceneViewer1
+  00598767    call    0048B5A0               ; GetObjectUnderCursor → TObject
+  0059876C    mov     [005F5D48],eax         ; PickedObject := result
+  00598771    call    005644A4               ; ProcessPick
+  00598776    mov     eax,ebx                ; Self
+  00598778    call    00598038               ; UpdateAfterPick(Self)
+  0059877D    pop     ebx
+  0059877E    ret
+
+--- Calling context ---
+
+  Called from:
+    00595C5D    call 0059874C    (inside game loop / cadencer tick)
+    0059A0B5    call 0059874C    (inside another update routine)
+
+--- Decompiled Pascal ---
+
+procedure HandleGameState2Pick(Self: TForm1);
+{ sub_0059874C — processes a 3D object pick when GameState = 2.
+  GameState 2 is likely an exploration/interaction mode. }
+begin
+  if GameState <> 2 then Exit;
+  if not sub_005627BC then Exit;   { some readiness check }
+
+  PickedObject := GetObjectUnderCursor(Self.GLSceneViewer1);  { sub_0048B5A0 }
+  ProcessPick;               { sub_005644A4 }
+  UpdateAfterPick(Self);     { sub_00598038 }
+end;
+
+{  Runs during GameState 2 (exploration?). First checks a condition
+   (sub_005627BC), then performs a 3D ray-cast or buffer pick on the
+   GLSceneViewer to find what object the cursor is over, stores it in
+   the global PickedObject, and hands off to processing routines.  }
+
+
+================================================================================
+  END OF DECOMPILED EVENT HANDLERS
+================================================================================
+
+Summary of stub (empty) handlers:
+  - FormShow, FormClose, ComboBox4Change, Timer1Timer,
+    GLDirectOpenGL1Render, Actor1Progress
+  These are either placeholders or their functionality has been moved
+  to other mechanisms (e.g. the GLScene cadencer drives the game loop
+  instead of TTimer).
+
+Summary of demo-related handlers:
+  - FormCloseQuery: blocks first close in demo, shows demo.jpg ad
+  - FormKeyPress:   any key dismisses the demo ad screen
+  - FormMouseUp:    click on demo ad → website or dismiss
+
+Summary of gameplay handlers:
+  - GLSceneViewer1MouseDown: combat (right-click attack) + navigation (turn L/R)
+  - GLSceneViewer1MouseMove: tracks cursor position in globals
+  - FormMouseWheelUp/Down:   scroll/zoom when not turning
+  - FormDestroy:             restores original WndProc
+  - sub_005AAE68:            name-entry keyboard input with CZ/EN mapping
+  - sub_005AB214:            action-feasibility guard check
+  - sub_0059874C:            3D object picking in GameState 2

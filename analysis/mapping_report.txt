@@ -1,0 +1,114 @@
+======================================================================
+LEGIE VARIABLE & FUNCTION MAPPING REPORT
+======================================================================
+
+Total global variables:  1133
+Game-relevant globals:   597
+Named globals:           89
+Named functions:         190
+
+Unit1 functions:         171
+Unit1 named:             142
+Unit1 unnamed:           29
+
+UNNAMED UNIT1 FUNCTIONS:
+----------------------------------------------------------------------
+  0059BABC  TForm1.GLSceneViewer1MouseUp              12393 asm  strings: www.sudokop.com, save_, u1ka
+  00595C24  TForm1.TimerProgress                        745 asm  strings: hrdinar, vyber, m_v1
+  00590DE8  TForm1.FormCreate                           725 asm  strings: Legie,  - DEMO,  - FULL VERSION - DO NOT DISTRIBUTE!
+  00599CD8  TForm1.FormKeyUp                            510 asm  strings: \save\, write error, save
+  005AAF24  TForm1.FormKeyDown                          206 asm  strings: (no strings)
+  00591AAC  TForm1.GLSceneViewer1MouseDown               92 asm  strings: ceka
+  005AAD14  TForm1.FormCloseQuery                        84 asm  strings: \demo.jpg, demo
+  005AB4B4  TForm1.FormKeyPress                          64 asm  strings: (no strings)
+  005AAE68  sub_005AAE68                                 63 asm  strings: (no strings)
+  00561C24  sub_00561C24                                 48 asm  strings: (no strings)
+  00561DB8  sub_00561DB8                                 38 asm  strings: (no strings)
+  00561C98  sub_00561C98                                 34 asm  strings: sum
+  00561D3C  sub_00561D3C                                 29 asm  strings: (no strings)
+  005AA2A0  TForm1.FormMouseWheelDown                    21 asm  strings: (no strings)
+  005AA2D4  TForm1.FormMouseWheelUp                      21 asm  strings: (no strings)
+  005AB45C  TForm1.FormMouseUp                           16 asm  strings: legie.sudokop.com
+  0059874C  sub_0059874C                                 15 asm  strings: (no strings)
+  005627BC  sub_005627BC                                 12 asm  strings: (no strings)
+  00561D94  sub_00561D94                                 10 asm  strings: (no strings)
+  005AB214  sub_005AB214                                 10 asm  strings: (no strings)
+  00561D24  sub_00561D24                                  8 asm  strings: (no strings)
+  00591C1C  TForm1.GLSceneViewer1MouseMove                8 asm  strings: (no strings)
+  005AB230  TForm1.FormDestroy                            8 asm  strings: (no strings)
+  005A8EB8  TForm1.Actor1Progress                         4 asm  strings: (no strings)
+  00591C34  TForm1.Timer1Timer                            1 asm  strings: (no strings)
+  005A8EC0  TForm1.GLDirectOpenGL1Render                  1 asm  strings: (no strings)
+  005AA298  TForm1.ComboBox4Change                        1 asm  strings: (no strings)
+  005AA29C  TForm1.FormShow                               1 asm  strings: (no strings)
+  005AAD10  TForm1.FormClose                              1 asm  strings: (no strings)
+
+UNMAPPED GAME GLOBALS (>3 refs):
+----------------------------------------------------------------------
+  gvar_005E1341    7 refs  readers: sub_0046A538, sub_0046A684, sub_0046A7D0
+  gvar_005E1648    7 refs  readers: sub_004B8EA8, sub_004B91A4, sub_004B9328
+  gvar_005F5EF3    7 refs  readers: TForm1.GLSceneViewer1MouseDown, sub_00592374, TForm1.GLSceneViewer1MouseUp
+  gvar_005F5EFA    7 refs  readers: sub_0056493C, sub_00591CCC, sub_00592374
+  gvar_005FE568    7 refs  readers: sub_00562990, sub_00562C90, sub_00562CF8
+  gvar_005FE6A5    7 refs  readers: sub_00561B60, sub_00561D24, sub_0056D460
+  gvar_005E1328    6 refs  readers: sub_00465098, sub_004650D0, sub_00465150
+  gvar_005E1344    6 refs  readers: sub_004A15A0, sub_00485298, sub_004858B8
+  gvar_005F50CC    6 refs  readers: sub_004BB258, sub_004BB378, sub_00592374
+  gvar_005F5D0A    6 refs  readers: sub_005656C8
+  gvar_005F5D2C    6 refs  readers: sub_0059B418, sub_0059B520, sub_0059B7AC
+  gvar_005F5D2D    6 refs  readers: sub_0059B520, sub_0059B878, sub_0059B9B4
+  gvar_005F5D4C    6 refs  readers: sub_00591C38, TForm1.FormKeyUp, TForm1.GLSceneViewer1MouseUp
+  gvar_005F5D8C    6 refs  readers: sub_00561E34, sub_00561E50, sub_00562D9C
+  gvar_005F5EF8    6 refs  readers: sub_00591CCC, sub_00592374, sub_005A8F50
+  gvar_005F5F0C    6 refs  readers: sub_004A37A0, sub_00561E50, sub_005645A0
+  gvar_005E132C    5 refs  readers: sub_00465098, sub_004650D0, sub_00465150
+  gvar_005E1348    5 refs  readers: sub_0048761C, sub_00491998, sub_00493A00
+  gvar_005E14A4    5 refs  readers: sub_0046C3FC, TGLContext.Destroy, sub_0046D4A0
+  gvar_005E14E0    5 refs  readers: sub_00472920, sub_0047294C, sub_004788C0
+  gvar_005E1524    5 refs  readers: sub_0048255C, sub_004825D8, sub_00482BDC
+  gvar_005E180C    5 refs  readers: sub_004BB258, sub_004BB378, sub_004BB6B4
+  gvar_005F555A    5 refs  readers: sub_004B97BC, sub_00592374
+  gvar_005F55D0    5 refs  readers: sub_00592374, TForm1.GLSceneViewer1MouseUp
+  gvar_005F55D8    5 refs  readers: sub_00565558, sub_00565810, sub_005658A8
+  gvar_005F5CE8    5 refs  readers: sub_00565528, sub_0059A59C, sub_0059B9B4
+  gvar_005F5D0B    5 refs  readers: sub_005656C8
+  gvar_005F5D1C    5 refs  readers: sub_00563920
+  gvar_005F5D94    5 refs  readers: sub_00561E34, sub_00561E50, sub_00563920
+  gvar_005F5EF2    5 refs  readers: TForm1.GLSceneViewer1MouseDown, sub_00592374
+  gvar_005F5EF7    5 refs  readers: TForm1.GLSceneViewer1MouseDown
+  gvar_005F5EFC    5 refs  readers: TForm1.GLSceneViewer1MouseDown, sub_00592374
+  gvar_005F6204    5 refs  readers: sub_004A37A0, sub_004A3C1C, sub_0056D60C
+  gvar_005F6688    5 refs  readers: sub_00565D68, sub_00565D88, sub_00565DD0
+  gvar_005FE479    5 refs  readers: sub_005627E4
+  gvar_005FE690    5 refs  readers: sub_00563920, sub_00570914, sub_0057342C
+  gvar_005AE0CC    4 refs  readers: TForm1.FormCloseQuery, TForm1.FormMouseUp, TForm1.FormKeyPress
+  gvar_005E153C    4 refs  readers: sub_00489578, sub_0048960C, sub_004896A0
+  gvar_005E1540    4 refs  readers: sub_00489578, sub_0048960C, sub_004896A0
+  gvar_005F5558    4 refs  readers: sub_005645E0
+  gvar_005F5564    4 refs  readers: TForm1.GLSceneViewer1MouseDown, sub_00591CCC, TForm1.GLSceneViewer1MouseUp
+  gvar_005F5584    4 refs  readers: sub_00592374
+  gvar_005F5586    4 refs  readers: sub_0057185C
+  gvar_005F55AA    4 refs  readers: sub_00563920, sub_00592374
+  gvar_005F55AC    4 refs  readers: sub_00563920, sub_00592374
+  gvar_005F55C0    4 refs  readers: sub_0056A59C
+  gvar_005F55D1    4 refs  readers: sub_00592374, TForm1.FormKeyUp
+  gvar_005F5CE4    4 refs  readers: sub_005657C4, sub_005658A8, TForm1.GLSceneViewer1MouseUp
+  gvar_005F5CEC    4 refs  readers: sub_00565444, sub_00565464, TForm1.TimerProgress
+  gvar_005F5D48    4 refs  readers: sub_005644A4, TForm1.FormKeyUp, TForm1.GLSceneViewer1MouseUp
+  gvar_005F5D54    4 refs  readers: sub_00592374, TForm1.TimerProgress
+  gvar_005F5D55    4 refs  readers: sub_00591C38, sub_00592374
+  gvar_005F5D80    4 refs  readers: sub_00563920, sub_00592374, TForm1.GLSceneViewer1MouseUp
+  gvar_005F5D90    4 refs  readers: sub_00592374, TForm1.GLSceneViewer1MouseUp
+  gvar_005F5DA0    4 refs  readers: sub_0056B8E4
+  gvar_005F5DB1    4 refs  readers: TForm1.FormCreate, TForm1.FormKeyUp
+  gvar_005F5EF0    4 refs  readers: sub_00592374
+  gvar_005F5EF4    4 refs  readers: sub_00591F88
+  gvar_005F5F04    4 refs  readers: sub_005644EC, sub_00592374, sub_0059688C
+  gvar_005F5F08    4 refs  readers: sub_00592374, TForm1.GLSceneViewer1MouseUp
+  gvar_005FCDC0    4 refs  readers: sub_00564FE0, sub_00565EB4, sub_005691F0
+  gvar_005FDD48    4 refs  readers: sub_0056DEBC, sub_0056E508
+  gvar_005FE47A    4 refs  readers: sub_005627E4
+  gvar_005FE491    4 refs  readers: TForm1.TimerProgress
+  gvar_005FE671    4 refs  readers: sub_0056B494, sub_0056B548, sub_00591FA4
+  gvar_005FE6CA    4 refs  readers: sub_00570A34, sub_0057342C
+  gvar_005FE6EA    4 refs  readers: sub_0056B8E4, sub_00570938, sub_0059A59C

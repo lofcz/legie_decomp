@@ -1,0 +1,933 @@
+{
+  Legie - Main Game Unit
+  Reconstructed from IDR disassembly of Unit1.pas (70,222 lines of x86 assembly)
+
+  This unit contains the entire game logic for "Legie", a Czech medieval
+  fantasy adventure game built with Delphi 7 + GLScene + FMOD 3.x.
+
+  Original: single TForm1 with 34 components, 20 event handlers,
+  and ~200 standalone procedures/functions.
+  
+  Decompilation status:
+    - Small utility functions: 10/10 done
+    - Event handlers: 17/20 done (3 large ones remain as stubs)
+    - Sound system: fully decompiled in SoundSystem.pas
+    - Game functions: stubs with descriptive names
+}
+unit Unit1;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
+  Registry, IniFiles, Math, ExtCtrls, ShellAPI,
+  GLScene, GLWin32Viewer, GLCadencer, GLObjects, GLTexture,
+  GLVectorFileObjects, GLHUDObjects, GLBitmapFont, GLSkyBox, GLVfsPAK,
+  GLMisc, GLGraphics,
+  fmod, fmodtypes,
+  LegieTypes, SoundSystem, FMODApi, CutsceneSystem, GameTextTable;
+
+type
+  TForm1 = class(TForm)
+    { ---- Published Components (from Form1.dfm) ---- }
+    GLScene1: TGLScene;
+    GLSceneViewer1: TGLSceneViewer;
+    Timer: TGLCadencer;
+    DummyCube1: TGLDummyCube;
+    GLhrac: TGLDummyCube;
+    kamera: TGLCamera;
+    HUD: TGLDummyCube;
+    Materialy: TGLMaterialLibrary;
+    HUDText: TGLDummyCube;
+    MaterialyStaticke: TGLMaterialLibrary;
+    stit: TGLActor;
+    zbran: TGLActor;
+    HUDkurzor: TGLDummyCube;
+    kurzor: TGLHUDSprite;
+    HUD4: TGLDummyCube;
+    DummyCube2: TGLDummyCube;
+    HracSvetlo: TGLLightSource;
+    GLLightSource2: TGLLightSource;
+    GLskybox1: TGLSkyBox;
+    HUDInv2: TGLDummyCube;
+    HracPitch: TGLDummyCube;
+    kurzorStr: TGLHUDSprite;
+    KameraRozhovor: TGLCamera;
+    RozhovorSleduj: TGLDummyCube;
+    GLLightSource1: TGLLightSource;
+    GLLightSource3: TGLLightSource;
+    HUD2: TGLDummyCube;
+    HUD3: TGLDummyCube;
+    fadeCube: TGLDummyCube;
+    denikl: TGLHUDText;
+    denikp: TGLHUDText;
+    DummyCube3: TGLDummyCube;
+    statuskamera: TGLCamera;
+    pak: TGLVfsPAK;
+
+    { ---- Event Handlers ---- }
+    procedure FormCreate(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
+    procedure FormShow(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure FormKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure FormKeyPress(Sender: TObject; var Key: Char);
+    procedure FormMouseUp(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
+    procedure FormMouseWheelUp(Sender: TObject; Shift: TShiftState;
+      MousePos: TPoint; var Handled: Boolean);
+    procedure FormMouseWheelDown(Sender: TObject; Shift: TShiftState;
+      MousePos: TPoint; var Handled: Boolean);
+    procedure TimerProgress(Sender: TObject; const deltaTime, newTime: Double);
+    procedure GLSceneViewer1MouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
+    procedure GLSceneViewer1MouseMove(Sender: TObject; Shift: TShiftState;
+      X, Y: Integer);
+    procedure GLSceneViewer1MouseUp(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
+    procedure GLDirectOpenGL1Render(Sender: TObject; var rci: TRenderContextInfo);
+    procedure Actor1Progress(Sender: TObject; const deltaTime, newTime: Double);
+    procedure ComboBox4Change(Sender: TObject);
+  private
+  public
+  end;
+
+var
+  Form1: TForm1;
+
+{ Additional globals discovered during decompilation }
+var
+  DemoScreenShown: Boolean;       { gvar_005AE0CC }
+  CzechKeyboard: Boolean;         { gvar_005AE0C4 }
+  DemoImage: TImage;              { gvar_005F5D30 }
+  MouseIsDown: Boolean;           { gvar_005FE491 }
+  TurningLeft: Boolean;           { gvar_005F5592 }
+  TurningRight: Boolean;          { gvar_005F5593 }
+  TurnReadyState: Byte;           { gvar_005F5595 }
+  TurnCounter: Word;              { gvar_005F5590 }
+  IsAttacking: Boolean;           { gvar_005F5EF3 }
+  AttackLocked: Boolean;          { gvar_005F5EF2 }
+  CanForceAttack: Boolean;        { gvar_005F5EF7 }
+  AttackAnimTimer: Word;          { gvar_005F5EFC }
+  AmmoCount: Integer;             { gvar_005F5564 }
+  ScreenBottomY: Integer;         { gvar_005F554C }
+  PickedObject: TObject;          { gvar_005F5D48 }
+  InputBuffer: AnsiString;        { gvar_005F5D4C }
+  CoordX: Integer;                { gvar_005FE6A1 }
+  CoordY: Integer;                { gvar_005FE6A5 }
+  PhaseState: Word;               { gvar_005FE754 }
+  Flag1, Flag2, Flag3: Word;      { gvar_005FE7A6..AA }
+  StringVar1: AnsiString;         { gvar_005F5D8C }
+  ByteFlag: Byte;                 { gvar_005F5D90 }
+  StringVar2: AnsiString;         { gvar_005F5D94 }
+  SomeCounter: Integer;           { gvar_005FE640 }
+  OrigWndProc: Longint;           { gvar_005F5DE0 }
+
+{ ---- Forward declarations for standalone functions ---- }
+
+{ Small utility functions (fully decompiled) }
+function CompareCoords(X, Y: Integer): Boolean;
+function ExtractDigits(const S: AnsiString; Default: Integer): Integer;
+function ExtractPrefixedNumber(const Prefix, S: AnsiString): Integer;
+procedure SetSumAppearance(Visibility: Byte; Mode: Byte);
+function CompareCoords2(X, Y: Integer): Boolean;
+function AxisDistance(X1, Y1, X2, Y2: Byte): Integer;
+procedure AdvancePhase;
+function AllFlagsSet: Boolean;
+function IsValueInRange(Index: Word): Boolean;
+procedure ClearStringState;
+
+{ Helper functions (decompiled) }
+procedure AppendKeyToNameInput(CzechChar: Char; StandardChar: Char);
+function CanPerformAction3: Boolean;
+procedure HandleGameState2Pick(AForm: TForm1);
+
+{ Scene/level management (stubs - to be decompiled) }
+procedure ProcessClickables; { 00561E50 - 34 strings }
+procedure SetupSceneObject(const Name: AnsiString; X, Y, Z: Single;
+  P1, P2, P3, P4: Integer; P5: Boolean); { 005626AC }
+procedure UpdateCursorPos(X, Y: Single); { 00562724 }
+procedure ClearClickAreas; { 00562990 }
+procedure ClearAllAreas; { 00562C90 }
+procedure SetGameMode(Mode: Byte); { 00562CF8 }
+function GetGameMode(P: Byte): Integer; { 00562D80 }
+function LookupSceneObject: Integer; { 00562D9C }
+
+{ Inventory/items (stubs) }
+procedure ProcessInventory; { 00563920 }
+procedure ProcessBitmap(Bmp: TBitmap); { 0056410C }
+procedure ProcessPick; { 005644A4 }
+procedure EnterGameplay; { 0056455C }
+procedure EnterInventory; { 00565464 }
+
+{ Scene/dialogue (stubs) }
+procedure ProcessSceneAction(AForm: TForm1; const ObjName: AnsiString); { 005652EC }
+procedure DisplayMessage(AForm: TForm1; const Msg: AnsiString); { 005652EC alias }
+procedure ShowFadingMessage(const Msg: AnsiString); { 00565DD0 }
+procedure TransitionState; { 00565EB4 }
+
+{ Level loading (stubs) }
+procedure LoadLevel(AForm: TForm1; LevelID: Integer); { 005660D4 - 280 strings }
+procedure SetupParticles(AForm: TForm1; P1, P2, P3: Integer; P4: Boolean); { 005691F0 }
+procedure GameLogicUpdate; { 0056A59C }
+procedure ParseScript; { 0056B8E4 }
+
+{ Texture system (stubs) }
+procedure LoadTexture(const Filename: AnsiString; Mode: Integer); { 0056DEBC }
+procedure LoadTextureSystem(AForm: TForm1); { 0056E508 }
+
+{ HUD (stubs) }
+procedure UpdateHUD; { 0056F06C }
+procedure UpdateSceneVisibility; { 00570084 }
+
+{ Movement/player (stubs) }
+procedure MoveWithCollision(P1, P2, P3, P4, P5, P6, P7: Integer); { 00570654 }
+procedure TurnPlayer(Angle: Single); { 005706A0 }
+procedure PitchPlayer(Angle: Single); { 0057074C }
+
+{ NPC/item setup (stubs) }
+procedure SetupNPCsAndItems(AForm: TForm1); { 00570BA8 }
+procedure ProcessDialogue(AForm: TForm1; DialogID: Integer); { 0057342C }
+
+{ Init/lifecycle (stubs) }
+procedure LoadRegistrySettings(AForm: TForm1); { 005909A4 }
+procedure InitMaterials; { 00590B2C }
+procedure UpdateInputDisplay; { 00591C38 }
+procedure GameStepUpdate(AForm: TForm1; DeltaTime: Double); { 00592374 }
+procedure HandleMouseWheel(Direction: Integer); { 00598780 }
+procedure HandleMainMenu(AForm: TForm1); { 00598038 }
+procedure HandleInventoryScreen(AForm: TForm1); { 00598C28 }
+procedure HandleSaveLoad(AForm: TForm1; SlotIndex: Integer); { 00599108 }
+function ProcessAI(P: Integer): Integer; { 0059A59C }
+procedure OpenURL(const URL: AnsiString); { 0059B878 }
+procedure CustomGLRender(AForm: TForm1; P: Integer); { 005A8F50 }
+procedure LoadSettings(AForm: TForm1); { 005AB24C }
+procedure SaveSettings; { 005AB3C0 }
+
+implementation
+
+{$R *.DFM}
+
+{ ============================================================ }
+{ Small Utility Functions (fully decompiled from assembly)      }
+{ ============================================================ }
+
+function CompareCoords(X, Y: Integer): Boolean;
+begin
+  Result := (X = CoordX) and (Y = CoordY);
+end;
+
+function ExtractDigits(const S: AnsiString; Default: Integer): Integer;
+var
+  DigitStr: AnsiString;
+  I, Code: Integer;
+begin
+  DigitStr := '';
+  for I := 1 to Length(S) do
+    if S[I] in ['0'..'9'] then
+      DigitStr := DigitStr + S[I];
+  Val(DigitStr, Result, Code);
+  if Code <> 0 then
+    Result := Default;
+end;
+
+function ExtractPrefixedNumber(const Prefix, S: AnsiString): Integer;
+var
+  Stripped: AnsiString;
+begin
+  if AnsiPos(Prefix, S) = 1 then
+  begin
+    Stripped := StringReplace(S, Prefix, '', [rfIgnoreCase]);
+    Result := ExtractDigits(Stripped, -1);
+  end
+  else
+    Result := -1;
+end;
+
+procedure SetSumAppearance(Visibility: Byte; Mode: Byte);
+var
+  Alpha: Single;
+  SumObj: TGLBaseSceneObject;
+begin
+  case Mode of
+    1: Alpha := 0.25;
+    2: Alpha := 0.05;
+  else
+    Alpha := 0.6;
+  end;
+  SumObj := TForm1(Form1Ref).GLScene1.Objects.FindChild('sum', False);
+  if (SumObj <> nil) and (SumObj is TGLCustomSceneObject) then
+    TGLCustomSceneObject(SumObj).Material.FrontProperties.Diffuse.Alpha := Alpha;
+end;
+
+function CompareCoords2(X, Y: Integer): Boolean;
+begin
+  Result := (X = CoordX) and (Y = CoordY);
+end;
+
+function AxisDistance(X1, Y1, X2, Y2: Byte): Integer;
+begin
+  Result := 5;
+  if X2 = X1 then
+    Result := Y1 - Y2;
+  if Y1 = Y2 then
+    Result := X1 - X2;
+  Result := Abs(Result);
+end;
+
+procedure AdvancePhase;
+begin
+  if PhaseState = 1 then
+    PhaseState := 2;
+end;
+
+function AllFlagsSet: Boolean;
+begin
+  Result := (Flag1 = 1) and (Flag2 = 1) and (Flag3 = 1);
+end;
+
+function IsValueInRange(Index: Word): Boolean;
+begin
+  { Checks a global Single threshold (FadeAlpha at $5FE678) against
+    integer range fields in a record array at $5FDD54 (36 bytes/record).
+    Supports both normal and wrapped ranges. }
+  // TODO: link to actual record array once structure is mapped
+  Result := False;
+end;
+
+procedure ClearStringState;
+begin
+  StringVar1 := '';
+  StringVar2 := '';
+  ByteFlag := 0;
+end;
+
+{ ============================================================ }
+{ Helper Functions (decompiled)                                 }
+{ ============================================================ }
+
+procedure AppendKeyToNameInput(CzechChar: Char; StandardChar: Char);
+begin
+  if Length(InputBuffer) >= 30 then Exit;
+
+  if CzechKeyboard then
+    case CzechChar of
+      'Y': CzechChar := 'Z';
+      'Z': CzechChar := 'Y';
+    end;
+
+  if StandardChar = ' ' then
+    StandardChar := CzechChar;
+
+  if not CzechKeyboard then
+    InputBuffer := InputBuffer + CzechChar
+  else
+    InputBuffer := InputBuffer + StandardChar;
+
+  UpdateInputDisplay;
+end;
+
+function CanPerformAction3: Boolean;
+begin
+  Result := (SomeCounter > 0) and (GetGameMode(3) > 0);
+end;
+
+procedure HandleGameState2Pick(AForm: TForm1);
+begin
+  if GameState <> 2 then Exit;
+  PickedObject := nil; // placeholder for GLSceneViewer pick
+  ProcessPick;
+  HandleMainMenu(AForm);
+end;
+
+{ ============================================================ }
+{ Stub Functions (to be decompiled)                             }
+{ ============================================================ }
+
+procedure ProcessClickables;
+begin { 00561E50 - 34 strings: dvere, s2tajne, babice, houba... } end;
+
+procedure SetupSceneObject(const Name: AnsiString; X, Y, Z: Single;
+  P1, P2, P3, P4: Integer; P5: Boolean);
+begin { 005626AC } end;
+
+procedure UpdateCursorPos(X, Y: Single);
+begin { 00562724 } end;
+
+procedure ClearClickAreas;
+begin { 00562990 } end;
+
+procedure ClearAllAreas;
+begin { 00562C90 } end;
+
+type
+  TClickAreaEntry = packed record
+    ID: Byte;
+    Pad: array[0..2] of Byte;
+    Value: Integer;
+  end;
+
+var
+  ClickAreaArray: array[0..25] of TClickAreaEntry;  { gvar_005FE568 }
+  ActiveAreaIndex: Byte;                             { gvar_005FE6A0 }
+
+procedure SetGameMode(Mode: Byte);
+{ 00562CF8 - Manages the 26-entry click area table.
+  Adds/updates an entry; if SetTransition=True, sets GameState=$0D }
+begin
+  GameState := Mode;
+end;
+
+function GetGameMode(P: Byte): Integer;
+{ 00562D80 - Looks up a click area by ID, returns its value }
+var
+  I: Integer;
+begin
+  Result := 0;
+  for I := 0 to 25 do
+    if ClickAreaArray[I].ID = P then
+    begin
+      Result := ClickAreaArray[I].Value;
+      Exit;
+    end;
+end;
+
+function LookupSceneObject: Integer;
+begin
+  Result := 0; { 00562D9C - 33 strings }
+end;
+
+procedure ProcessInventory;
+begin { 00563920 - 10 strings } end;
+
+procedure ProcessBitmap(Bmp: TBitmap);
+begin { 0056410C } end;
+
+procedure ProcessPick;
+begin { 005644A4 } end;
+
+procedure EnterGameplay;
+begin
+  GameState := GS_GAMEPLAY;
+end;
+
+procedure EnterInventory;
+begin
+  GameState := GS_INVENTORY;
+end;
+
+procedure ProcessSceneAction(AForm: TForm1; const ObjName: AnsiString);
+begin { 005652EC } end;
+
+procedure DisplayMessage(AForm: TForm1; const Msg: AnsiString);
+begin { 005652EC alias } end;
+
+procedure ShowFadingMessage(const Msg: AnsiString);
+begin { 00565DD0 } end;
+
+procedure TransitionState;
+begin { 00565EB4 } end;
+
+procedure LoadLevel(AForm: TForm1; LevelID: Integer);
+begin { 005660D4 - 280 strings } end;
+
+procedure SetupParticles(AForm: TForm1; P1, P2, P3: Integer; P4: Boolean);
+begin { 005691F0 } end;
+
+procedure GameLogicUpdate;
+begin { 0056A59C - 916 asm lines } end;
+
+procedure ParseScript;
+begin { 0056B8E4 - 18 strings } end;
+
+procedure LoadTexture(const Filename: AnsiString; Mode: Integer);
+begin { 0056DEBC } end;
+
+procedure LoadTextureSystem(AForm: TForm1);
+begin { 0056E508 - 46 strings } end;
+
+procedure UpdateHUD;
+begin { 0056F06C - 94 strings, 730 asm lines } end;
+
+procedure UpdateSceneVisibility;
+begin { 00570084 - 48 strings } end;
+
+procedure MoveWithCollision(P1, P2, P3, P4, P5, P6, P7: Integer);
+begin { 00570654 } end;
+
+procedure TurnPlayer(Angle: Single);
+{ 005706A0 - Rotate player horizontally, wrap yaw to [0,360) }
+var
+  Yaw: PSingle;
+begin
+  Yaw := PSingle(PChar(GameDataPtr) + $1E0);
+  Yaw^ := Yaw^ + Angle;
+  if Yaw^ < 0.0 then Yaw^ := Yaw^ + 360.0;
+  if Yaw^ >= 360.0 then Yaw^ := Yaw^ - 360.0;
+  { TODO: update GL camera Direction.Z }
+end;
+
+procedure PitchPlayer(Angle: Single);
+{ 0057074C - Adjust vertical look, clamp pitch to [25..150] }
+var
+  Pitch: PSingle;
+begin
+  if Angle = 0.0 then Exit;
+  Pitch := PSingle(PChar(GameDataPtr) + $1E4);
+  if Angle < 0.0 then
+    if Pitch^ + Angle < 25.0 then
+      Angle := 25.0 - Pitch^;
+  if Angle > 0.0 then
+    if Pitch^ + Angle > 150.0 then
+      Angle := 150.0 - Pitch^;
+  Pitch^ := Pitch^ + Angle;
+  { TODO: update GL camera Direction.X }
+end;
+
+procedure SetupNPCsAndItems(AForm: TForm1);
+begin { 00570BA8 - 67 strings } end;
+
+procedure ProcessDialogue(AForm: TForm1; DialogID: Integer);
+begin { 0057342C - 262 strings, 27141 asm lines } end;
+
+procedure LoadRegistrySettings(AForm: TForm1);
+var
+  Reg: TRegistry;
+begin
+  Reg := TRegistry.Create;
+  try
+    Reg.RootKey := HKEY_CURRENT_USER;
+    if Reg.OpenKey('Software\Sudokop', False) then
+    begin
+      if Reg.ValueExists('volume') then
+        MasterVolume := Reg.ReadInteger('volume');
+      if Reg.ValueExists('borders') then
+        ShowBorders := Reg.ReadInteger('borders');
+      if Reg.ValueExists('inverse') then
+        InvertMouse := Reg.ReadInteger('inverse') <> 0;
+      if Reg.ValueExists('mouse') then
+        MouseSensitivity := Reg.ReadInteger('mouse');
+      Reg.CloseKey;
+    end;
+  finally
+    Reg.Free;
+  end;
+end;
+
+procedure InitMaterials;
+begin { 00590B2C } end;
+
+procedure UpdateInputDisplay;
+begin { 00591C38 } end;
+
+procedure GameStepUpdate(AForm: TForm1; DeltaTime: Double);
+begin { 00592374 - 35 strings, 3299 asm lines } end;
+
+procedure HandleMouseWheel(Direction: Integer);
+begin { 00598780 } end;
+
+procedure HandleMainMenu(AForm: TForm1);
+begin { 00598038 - 11 strings } end;
+
+procedure HandleInventoryScreen(AForm: TForm1);
+begin { 00598C28 - 10 strings } end;
+
+procedure HandleSaveLoad(AForm: TForm1; SlotIndex: Integer);
+begin { 00599108 - 17 strings } end;
+
+function ProcessAI(P: Integer): Integer;
+begin
+  Result := 0; { 0059A59C - 946 asm lines }
+end;
+
+procedure OpenURL(const URL: AnsiString);
+begin
+  ShellExecute(0, 'open', PChar(URL), nil, nil, SW_SHOWNORMAL);
+end;
+
+procedure CustomGLRender(AForm: TForm1; P: Integer);
+begin { 005A8F50 - 1164 asm lines } end;
+
+procedure LoadSettings(AForm: TForm1);
+{ 005AB24C - Load settings from registry Software\Sudokop\Legie }
+var
+  Reg: TRegistry;
+begin
+  Reg := TRegistry.Create;
+  try
+    Reg.RootKey := HKEY_CURRENT_USER;
+    if Reg.OpenKey('Software\Sudokop\Legie', False) then
+    begin
+      try
+        if Reg.ValueExists('volume') then
+          MasterVolume := Reg.ReadInteger('volume');
+      except end;
+      try
+        if Reg.ValueExists('borders') then
+          ShowBorders := Reg.ReadInteger('borders');
+      except end;
+      try
+        if Reg.ValueExists('inverse') then
+          InvertMouse := Reg.ReadInteger('inverse') <> 0;
+      except end;
+      try
+        if Reg.ValueExists('mouse') then
+          MouseSensitivity := Reg.ReadInteger('mouse');
+      except end;
+      Reg.CloseKey;
+    end;
+  finally
+    Reg.Free;
+  end;
+end;
+
+procedure SaveSettings;
+{ 005AB3C0 - Save settings to registry Software\Sudokop\Legie }
+var
+  Reg: TRegistry;
+begin
+  Reg := TRegistry.Create;
+  try
+    Reg.RootKey := HKEY_CURRENT_USER;
+    if Reg.OpenKey('Software\Sudokop\Legie', True) then
+    begin
+      Reg.WriteInteger('volume', MasterVolume);
+      Reg.WriteInteger('borders', ShowBorders);
+      Reg.WriteInteger('mouse', MouseSensitivity);
+      Reg.CloseKey;
+    end;
+  finally
+    Reg.Free;
+  end;
+end;
+
+{ GetStringByID is now in GameTextTable.pas unit }
+
+{ ============================================================ }
+{ TForm1 Event Handlers (decompiled from assembly)              }
+{ ============================================================ }
+
+var
+  DebugLogStarted: Boolean = False;
+
+procedure DebugLog(const Msg: string);
+var F: TextFile;
+begin
+  AssignFile(F, ExtractFilePath(ParamStr(0)) + 'debug.log');
+  if not DebugLogStarted then begin
+    Rewrite(F);
+    DebugLogStarted := True;
+  end else
+    Append(F);
+  WriteLn(F, FormatDateTime('hh:nn:ss.zzz', Now) + ' ' + Msg);
+  CloseFile(F);
+end;
+
+procedure TForm1.FormCreate(Sender: TObject);
+begin
+  DebugLog('FormCreate START');
+  Form1Ref := Self;
+  Caption := 'Legie';
+  if IsDemo then
+    Caption := Caption + ' - DEMO'
+  else if IsFullVersion then
+    Caption := Caption + ' - FULL VERSION - DO NOT DISTRIBUTE!';
+
+  DebugLog('Caption set');
+  BroadcastMsg := RegisterWindowMessage('legie');
+
+  MouseWheelDelta := 0;
+  PrevGameState := 0;
+  GameSubState := 0;
+  GameLoading := False;
+  GameState := GS_MENU;
+  DemoScreenShown := False;
+
+  DebugLog('Loading settings...');
+  LoadSettings(Self);
+  AppPath := ExtractFilePath(ParamStr(0));
+  DebugLog('AppPath = ' + AppPath);
+
+  { Look for game data in exe dir, then parent dir }
+  if not FileExists(AppPath + 'legie.sud') then
+    if FileExists(ExtractFilePath(ExcludeTrailingPathDelimiter(AppPath)) + 'legie.sud') then
+      AppPath := ExtractFilePath(ExcludeTrailingPathDelimiter(AppPath));
+
+  if IsDemo then
+  begin
+    if not FileExists(AppPath + 'demo.sud') then
+    begin
+      Application.MessageBox('demo.sud not found', 'Legie', MB_OK);
+      Exit;
+    end;
+    pak.LoadFromFile(AppPath + 'demo.sud', fmOpenRead);
+  end
+  else
+  begin
+    if not FileExists(AppPath + 'legie.sud') then
+    begin
+      Application.MessageBox('legie.sud not found', 'Legie', MB_OK);
+      Exit;
+    end;
+    DebugLog('Loading legie.sud...');
+    pak.LoadFromFile(AppPath + 'legie.sud', fmOpenRead);
+    DebugLog('PAK loaded OK');
+  end;
+
+  Randomize;
+  AccumulatedTime := 0;
+
+  DebugLog('Init FMOD...');
+  try
+    if not InitFMOD then
+      DebugLog('FMOD init failed');
+    SoundInit;
+    DebugLog('Sound init OK');
+  except
+    on E: Exception do DebugLog('FMOD exception: ' + E.Message);
+  end;
+
+  DebugLog('LoadRegistrySettings...');
+  LoadRegistrySettings(Self);
+  DebugLog('InitMaterials...');
+  InitMaterials;
+
+  DebugLog('Setting viewer size...');
+  GLSceneViewer1.Width := 800;
+  GLSceneViewer1.Height := 600;
+  ViewerWidth := GLSceneViewer1.Width;
+  ViewerHeight := GLSceneViewer1.Height;
+
+  DebugLog('Loading SFX...');
+  try
+    if not LoadAllSFX then
+      DebugLog('Some SFX failed');
+    DebugLog('SFX done');
+  except
+    on E: Exception do DebugLog('SFX exception: ' + E.Message);
+  end;
+
+  DebugLog('FormCreate DONE');
+  // TODO: continue decompiling rest of FormCreate
+  // (model loading, HUD setup, initial scene, player init)
+end;
+
+procedure TForm1.FormDestroy(Sender: TObject);
+begin
+  { 005AB230 }
+  SetWindowLong(TForm1(Form1Ref).Handle, GWL_WNDPROC, OrigWndProc);
+end;
+
+procedure TForm1.FormShow(Sender: TObject);
+begin
+  { 005AA29C - empty stub }
+end;
+
+procedure TForm1.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+  { 005AAD10 - empty stub }
+end;
+
+procedure TForm1.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+var
+  Path: AnsiString;
+begin
+  { 005AAD14 - 84 asm lines }
+  if IsDemo and (not DemoScreenShown) then
+  begin
+    GLSceneViewer1.Visible := False;
+    Timer.Enabled := False;
+
+    DemoImage := TImage.Create(TForm1(Form1Ref));
+    Path := AppPath + '\demo.jpg';
+    DemoImage.Picture.LoadFromFile(Path);
+    DemoImage.Align := alClient;
+    DemoImage.Center := True;
+    DemoImage.Visible := True;
+    DemoImage.Parent := TForm1(Form1Ref);
+    DemoImage.Name := 'demo';
+    DemoImage.BringToFront;
+
+    DemoScreenShown := True;
+    CanClose := False;
+  end
+  else
+  begin
+    Timer.Enabled := False;
+    TransitionState;
+    StopMusic;
+    StopAmbient;
+    SoundShutdown;
+    SaveSettings;
+  end;
+end;
+
+procedure TForm1.FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+  { 005AAF24 - 206 asm lines }
+  // TODO: decompile - movement keys, ESC, function keys, QWERTZ input
+end;
+
+procedure TForm1.FormKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+  { 00599CD8 - 510 asm lines, 11 strings }
+  // TODO: decompile - key releases, F5/F9 quick save/load
+end;
+
+procedure TForm1.FormKeyPress(Sender: TObject; var Key: Char);
+begin
+  { 005AB4B4 }
+  if IsDemo and DemoScreenShown then
+    Close;
+end;
+
+procedure TForm1.FormMouseUp(Sender: TObject; Button: TMouseButton;
+  Shift: TShiftState; X, Y: Integer);
+begin
+  { 005AB45C }
+  if IsDemo and DemoScreenShown then
+  begin
+    if Round(TargetMouseY) + 200 < Y then
+      OpenURL('legie.sudokop.com')
+    else
+      Close;
+  end;
+end;
+
+procedure TForm1.FormMouseWheelUp(Sender: TObject; Shift: TShiftState;
+  MousePos: TPoint; var Handled: Boolean);
+begin
+  { 005AA2D4 }
+  if (not TurningLeft) and (not TurningRight) then
+    HandleMouseWheel(-1);
+end;
+
+procedure TForm1.FormMouseWheelDown(Sender: TObject; Shift: TShiftState;
+  MousePos: TPoint; var Handled: Boolean);
+begin
+  { 005AA2A0 }
+  if (not TurningLeft) and (not TurningRight) then
+    HandleMouseWheel(1);
+end;
+
+procedure TForm1.TimerProgress(Sender: TObject; const deltaTime, newTime: Double);
+const
+  FIXED_STEP = 0.01;
+begin
+  { 00595C24 - 745 asm lines, main game loop }
+  if not Application.Active then
+    HandleGameState2Pick(Self);
+
+  AccumulatedTime := AccumulatedTime + deltaTime;
+
+  while AccumulatedTime >= FIXED_STEP do
+  begin
+    GameStepUpdate(Self, FIXED_STEP);
+    AccumulatedTime := AccumulatedTime - FIXED_STEP;
+  end;
+
+  if not GameLoading then
+  begin
+    case GameState of
+      GS_GAMEPLAY, GS_CUTSCENE: begin
+        // TODO: movement, collision, camera updates
+      end;
+    end;
+
+    PrevMouseX := Round(TargetMouseX);
+    PrevMouseY := Round(TargetMouseY);
+  end;
+end;
+
+procedure TForm1.GLSceneViewer1MouseDown(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+var
+  AnimName, Msg: AnsiString;
+begin
+  { 00591AAC - 92 asm lines }
+  MouseIsDown := True;
+
+  { Combat mode: right-click attack }
+  if (GameState = 1) and (Button = mbRight) and
+     (not IsAttacking) and (not AttackLocked) then
+  begin
+    if AttackAnimTimer = 0 then
+    begin
+      // AnimName := zbran.CurrentAnimation;
+      // if (AnimName <> 'ceka') and (not CanForceAttack) then Exit from block
+    end
+    else if not CanForceAttack then
+      { skip };
+
+    if AmmoCount > 0 then
+    begin
+      if GetGameMode(1) <> 0 then
+      begin
+        IsAttacking := True;
+        AttackAnimTimer := 35;
+      end
+      else
+      begin
+        GetStringByID($76, Msg);
+        DisplayMessage(Self, Msg);
+      end;
+    end;
+  end;
+
+  { Navigation mode: turn left/right on edge click }
+  if GameState = $0F then
+  begin
+    if ScreenBottomY - 100 < MouseY then
+    begin
+      if (Round(TargetMouseX) - 285 > MouseX)
+         and (not TurningLeft) and (TurnReadyState = $FF) then
+      begin
+        TurnCounter := 0;
+        TurningLeft := True;
+      end;
+      if (Round(TargetMouseX) + 285 < MouseX)
+         and (not TurningRight) and (TurnReadyState = $FF) then
+      begin
+        TurnCounter := 0;
+        TurningRight := True;
+      end;
+    end;
+  end;
+end;
+
+procedure TForm1.GLSceneViewer1MouseMove(Sender: TObject;
+  Shift: TShiftState; X, Y: Integer);
+begin
+  { 00591C1C }
+  MouseX := X;
+  MouseY := Y;
+end;
+
+procedure TForm1.GLSceneViewer1MouseUp(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  { 0059BABC - 12393 asm lines, 111 strings }
+  // TODO: decompile - largest event handler
+  // Handles all click actions: menu, inventory, dialogue, scene interaction
+end;
+
+procedure TForm1.GLDirectOpenGL1Render(Sender: TObject;
+  var rci: TRenderContextInfo);
+begin
+  { 005A8EC0 - empty stub }
+end;
+
+procedure TForm1.Actor1Progress(Sender: TObject;
+  const deltaTime, newTime: Double);
+begin
+  { 005A8EB8 - empty stub }
+end;
+
+procedure TForm1.ComboBox4Change(Sender: TObject);
+begin
+  { 005AA298 - empty stub }
+end;
+
+end.

@@ -1,0 +1,1418 @@
+================================================================================
+  LEGIE - Medium Functions Decompilation
+  Source: Unit1.pas (x86 ASM -> Object Pascal)
+  15 functions decompiled
+================================================================================
+
+
+================================================================================
+1. sub_00562CF8 - "SetGameMode" (line 1517)
+   Manages the 26-entry click-area table (gvar_005FE568).
+   Each entry is 8 bytes: [ID: Byte, pad(3), Value: Integer].
+   If the area ID already exists, adds to its value.
+   If not, inserts into the first empty slot.
+   If SetTransition=True, records the slot index and sets GameState to $0D.
+================================================================================
+
+--- RAW ASSEMBLY ---
+
+//00562CF8
+procedure sub_00562CF8(AreaID: Byte {AL}; Value: Word {DX}; SetTransition: Boolean {CL});
+ 00562CF8    push        ebx
+ 00562CF9    push        esi
+ 00562CFA    push        ecx                     // allocate 4 bytes on stack
+ 00562CFB    mov         byte ptr [esp+1],cl     // [esp+1] = SetTransition
+ 00562CFF    mov         esi,edx                 // esi = Value
+ 00562D01    mov         byte ptr [esp],al       // [esp] = AreaID
+ 00562D04    call        00562C90                // ClearAllAreas (compact)
+ 00562D09    xor         eax,eax                 // Found = False
+ 00562D0B    mov         dl,1A                   // counter = 26
+ 00562D0D    mov         ecx,5FE568              // ecx -> ClickAreaArray
+ 00562D12    mov         bl,byte ptr [ecx]       // bl = entry.ID
+ 00562D14    cmp         bl,byte ptr [esp]       // compare with AreaID
+ 00562D17    jne         00562D23
+ 00562D19    movzx       eax,si                  // eax = Value (zero-extended)
+ 00562D1C    add         dword ptr [ecx+4],eax   // entry.Value += Value
+ 00562D1F    mov         al,1                    // Found = True
+ 00562D21    jmp         00562D2A
+ 00562D23    add         ecx,8                   // next entry
+ 00562D26    dec         dl
+ 00562D28    jne         00562D12
+ 00562D2A    test        al,al                   // if not Found...
+ 00562D2C    jne         00562D4E
+ 00562D2E    mov         dl,1A                   // search for empty slot
+ 00562D30    mov         eax,5FE568
+ 00562D35    cmp         byte ptr [eax],0
+ 00562D38    jne         00562D47
+ 00562D3A    mov         cl,byte ptr [esp]       // entry.ID = AreaID
+ 00562D3D    mov         byte ptr [eax],cl
+ 00562D3F    movzx       ecx,si
+ 00562D42    mov         dword ptr [eax+4],ecx   // entry.Value = Value
+ 00562D45    jmp         00562D4E
+ 00562D47    add         eax,8
+ 00562D4A    dec         dl
+ 00562D4C    jne         00562D35
+ 00562D4E    cmp         byte ptr [esp+1],0      // if SetTransition
+ 00562D53    je          00562D7B
+ 00562D55    xor         edx,edx                 // index = 0
+ 00562D57    mov         eax,5FE568
+ 00562D5C    mov         cl,byte ptr [eax]
+ 00562D5E    cmp         cl,byte ptr [esp]       // find matching entry index
+ 00562D61    jne         00562D6B
+ 00562D63    mov         byte ptr ds:[5FE6A0],dl // ActiveAreaIndex = index
+ 00562D69    jmp         00562D74
+ 00562D6B    inc         edx
+ 00562D6C    add         eax,8
+ 00562D6F    cmp         dl,1A
+ 00562D72    jne         00562D5C
+ 00562D74    mov         byte ptr ds:[5F5577],0D // GameState = $0D (transition)
+ 00562D7B    pop         edx
+ 00562D7C    pop         esi
+ 00562D7D    pop         ebx
+ 00562D7E    ret
+
+--- DECOMPILED PASCAL ---
+
+type
+  TClickAreaEntry = packed record
+    ID:    Byte;
+    Pad:   array[0..2] of Byte;
+    Value: Integer;
+  end;
+
+var
+  ClickAreaArray: array[0..25] of TClickAreaEntry;  // gvar_005FE568
+  ActiveAreaIndex: Byte;                             // gvar_005FE6A0
+  GameState: Byte;                                   // gvar_005F5577
+
+procedure SetGameMode(AreaID: Byte; Value: Word; SetTransition: Boolean);
+var
+  I: Integer;
+  Found: Boolean;
+begin
+  ClearAllAreas;  // compact the array first
+
+  Found := False;
+  for I := 0 to 25 do
+  begin
+    if ClickAreaArray[I].ID = AreaID then
+    begin
+      ClickAreaArray[I].Value := ClickAreaArray[I].Value + Value;
+      Found := True;
+      Break;
+    end;
+  end;
+
+  if not Found then
+  begin
+    for I := 0 to 25 do
+    begin
+      if ClickAreaArray[I].ID = 0 then
+      begin
+        ClickAreaArray[I].ID := AreaID;
+        ClickAreaArray[I].Value := Value;
+        Break;
+      end;
+    end;
+  end;
+
+  if SetTransition then
+  begin
+    for I := 0 to 25 do
+    begin
+      if ClickAreaArray[I].ID = AreaID then
+      begin
+        ActiveAreaIndex := I;
+        Break;
+      end;
+    end;
+    GameState := $0D;
+  end;
+end;
+
+
+================================================================================
+2. sub_00562D80 - "GetGameMode" (line 1574)
+   Looks up a click area by ID and returns its value.
+   Scans all 26 entries; returns the value of the last match (normally unique).
+================================================================================
+
+--- RAW ASSEMBLY ---
+
+//00562D80
+function sub_00562D80(AreaID: Byte {AL}): Integer;
+ 00562D80    push        esi
+ 00562D81    xor         esi,esi             // Result = 0
+ 00562D83    mov         cl,1A               // counter = 26
+ 00562D85    mov         edx,5FE568          // edx -> ClickAreaArray
+ 00562D8A    cmp         al,byte ptr [edx]   // if AreaID = entry.ID
+ 00562D8C    jne         00562D91
+ 00562D8E    mov         esi,dword ptr [edx+4]  // Result = entry.Value
+ 00562D91    add         edx,8               // next entry
+ 00562D94    dec         cl
+ 00562D96    jne         00562D8A
+ 00562D98    mov         eax,esi             // return Result
+ 00562D9A    pop         esi
+ 00562D9B    ret
+
+--- DECOMPILED PASCAL ---
+
+function GetGameMode(AreaID: Byte): Integer;
+var
+  I: Integer;
+begin
+  Result := 0;
+  for I := 0 to 25 do
+  begin
+    if ClickAreaArray[I].ID = AreaID then
+      Result := ClickAreaArray[I].Value;
+  end;
+end;
+
+
+================================================================================
+3. sub_00562990 - "ClearClickAreas" (line 1201)
+   Zeros out all 26 entries of the click area array.
+================================================================================
+
+--- RAW ASSEMBLY ---
+
+//00562990
+procedure sub_00562990;
+ 00562990    mov         dl,1A               // counter = 26
+ 00562992    mov         eax,5FE568          // eax -> ClickAreaArray
+ 00562997    mov         byte ptr [eax],0    // entry.ID = 0
+ 0056299A    xor         ecx,ecx
+ 0056299C    mov         dword ptr [eax+4],ecx  // entry.Value = 0
+ 0056299F    add         eax,8               // next entry
+ 005629A2    dec         dl
+ 005629A4    jne         00562997
+ 005629A6    ret
+
+--- DECOMPILED PASCAL ---
+
+procedure ClearClickAreas;
+var
+  I: Integer;
+begin
+  for I := 0 to 25 do
+  begin
+    ClickAreaArray[I].ID := 0;
+    ClickAreaArray[I].Value := 0;
+  end;
+end;
+
+
+================================================================================
+4. sub_00562C90 - "ClearAllAreas" (line 1475)
+   Compacts the click area array: saves a copy, clears the array,
+   then re-inserts all non-empty entries (removing gaps).
+   Skipped entirely if gvar_005F5596 flag is set.
+================================================================================
+
+--- RAW ASSEMBLY ---
+
+//00562C90
+procedure sub_00562C90;
+ 00562C90    push        ebx
+ 00562C91    push        esi
+ 00562C92    push        edi
+ 00562C93    add         esp,0FFFFFF2C       // allocate $D4 (212) bytes
+ 00562C99    cmp         byte ptr ds:[5F5596],0  // if CompactLock <> 0
+ 00562CA0    jne         00562CEB                // skip everything
+ 00562CA2    mov         esi,5FE568              // source = ClickAreaArray
+ 00562CA7    lea         edi,[esp+4]             // dest = local buffer
+ 00562CAB    mov         ecx,34                  // 52 dwords = 208 bytes (26*8)
+ 00562CB0    rep movs    dword ptr [edi],dword ptr [esi]  // memcpy
+ 00562CB2    call        00562990                // ClearClickAreas
+ 00562CB7    mov         byte ptr [esp],1A       // outerCount = 26
+ 00562CBB    lea         edx,[esp+4]             // edx -> saved buffer
+ 00562CBF    cmp         byte ptr [edx],0        // if saved.ID = 0
+ 00562CC2    je          00562CE3                // skip (empty entry)
+ 00562CC4    mov         bl,1A                   // innerCount = 26
+ 00562CC6    mov         eax,5FE568              // eax -> ClickAreaArray
+ 00562CCB    cmp         byte ptr [eax],0        // find empty slot
+ 00562CCE    jne         00562CDC
+ 00562CD0    mov         ecx,dword ptr [edx]     // copy ID+pad
+ 00562CD2    mov         dword ptr [eax],ecx
+ 00562CD4    mov         ecx,dword ptr [edx+4]   // copy Value
+ 00562CD7    mov         dword ptr [eax+4],ecx
+ 00562CDA    jmp         00562CE3
+ 00562CDC    add         eax,8
+ 00562CDF    dec         bl
+ 00562CE1    jne         00562CCB
+ 00562CE3    add         edx,8                   // next saved entry
+ 00562CE6    dec         byte ptr [esp]
+ 00562CE9    jne         00562CBF
+ 00562CEB    add         esp,0D4                 // cleanup stack
+ 00562CF1    pop         edi
+ 00562CF2    pop         esi
+ 00562CF3    pop         ebx
+ 00562CF4    ret
+
+--- DECOMPILED PASCAL ---
+
+var
+  CompactLock: Boolean;  // gvar_005F5596
+
+procedure ClearAllAreas;
+var
+  SavedArray: array[0..25] of TClickAreaEntry;
+  I, J: Integer;
+begin
+  if CompactLock then
+    Exit;
+
+  Move(ClickAreaArray, SavedArray, SizeOf(ClickAreaArray));
+  ClearClickAreas;
+
+  for I := 0 to 25 do
+  begin
+    if SavedArray[I].ID <> 0 then
+    begin
+      for J := 0 to 25 do
+      begin
+        if ClickAreaArray[J].ID = 0 then
+        begin
+          ClickAreaArray[J] := SavedArray[I];
+          Break;
+        end;
+      end;
+    end;
+  end;
+end;
+
+
+================================================================================
+5. sub_00565EB4 - "TransitionState" (line 5104)
+   Major state-transition/reset function. Resets the entire game to initial
+   state: clears background to white, resets camera, shows GL objects,
+   zeroes all state globals, frees all loaded 3D objects by name,
+   clears string tables, and resets the camera position.
+================================================================================
+
+--- RAW ASSEMBLY ---
+
+//00565EB4
+procedure sub_00565EB4;
+ 00565EB4    push        ebp
+ 00565EB5    mov         ebp,esp
+ 00565EB7    push        0                       // [ebp-4] local str1
+ 00565EB9    push        0                       // [ebp-8] local str2
+ 00565EBB    push        ebx
+ 00565EBC    push        esi
+ 00565EBD    push        edi
+ 00565EBE    mov         edi,5F5524              // edi -> Form1Ref
+ 00565EC3    xor         eax,eax                 // SEH setup
+ 00565EC5    push        ebp
+ 00565EC6    push        566087
+ 00565ECB    push        dword ptr fs:[eax]
+ 00565ECE    mov         dword ptr fs:[eax],esp
+ // sub_00561C98(0, 0) - stop audio/effects
+ 00565ED1    xor         edx,edx
+ 00565ED3    xor         eax,eax
+ 00565ED5    call        00561C98
+ // Set background color to white (1.0, 1.0, 1.0, 1.0)
+ 00565EDA    push        3F800000                // 1.0
+ 00565EDF    push        3F800000
+ 00565EE4    push        3F800000
+ 00565EE9    push        3F800000
+ 00565EEE    mov         eax,dword ptr [edi]
+ 00565EF0    mov         eax,dword ptr [eax+2FC] // GLSceneViewer1
+ 00565EF6    mov         eax,dword ptr [eax+208] // Buffer
+ 00565EFC    mov         eax,dword ptr [eax+118] // BackgroundColor
+ 00565F02    call        00472C84                // SetColor(1,1,1,1)
+ // Reset flags
+ 00565F07    mov         byte ptr ds:[5F55D0],0  // gvar_005F55D0 = 0
+ 00565F0E    mov         byte ptr ds:[5F55D1],0  // gvar_005F55D1 = 0
+ // Set camera: GLSceneViewer1.Camera := kamera
+ 00565F15    mov         eax,dword ptr [edi]
+ 00565F17    mov         edx,dword ptr [eax+30C] // kamera
+ 00565F1D    mov         eax,dword ptr [edi]
+ 00565F1F    mov         eax,dword ptr [eax+2FC] // GLSceneViewer1
+ 00565F25    call        TGLSceneViewer.SetCamera
+ // field_304.Visible := True
+ 00565F2A    mov         eax,dword ptr [edi]
+ 00565F2C    mov         eax,dword ptr [eax+304]
+ 00565F32    mov         dl,1
+ 00565F34    mov         ecx,dword ptr [eax]
+ 00565F36    call        dword ptr [ecx+3C]      // virtual SetVisible(True)
+ // GLhrac.Visible := True  (field $334)
+ 00565F39    mov         eax,dword ptr [edi]
+ 00565F3B    mov         eax,dword ptr [eax+334]
+ 00565F41    mov         dl,1
+ 00565F43    mov         ecx,dword ptr [eax]
+ 00565F45    call        dword ptr [ecx+3C]
+ // field_374.Visible := True
+ 00565F48    mov         eax,dword ptr [edi]
+ 00565F4A    mov         eax,dword ptr [eax+374]
+ 00565F50    mov         dl,1
+ 00565F52    mov         ecx,dword ptr [eax]
+ 00565F54    call        dword ptr [ecx+3C]
+ // Reset many global variables
+ 00565F57    mov         byte ptr ds:[5F5594],0
+ 00565F5E    call        00561434
+ 00565F63    xor         eax,eax
+ 00565F65    mov         [005FE47C],eax          // 0
+ 00565F6A    mov         byte ptr ds:[5FE490],0
+ 00565F71    mov         byte ptr ds:[5F5586],0
+ 00565F78    xor         eax,eax
+ 00565F7A    mov         [005FE484],eax          // 0
+ 00565F7F    xor         eax,eax
+ 00565F81    mov         [005FE480],eax          // 0
+ 00565F86    xor         eax,eax
+ 00565F88    mov         [005F5DFC],eax          // 0
+ 00565F8D    mov         byte ptr ds:[5FDD49],0
+ 00565F94    mov         byte ptr ds:[5F5577],0  // GameState = 0
+ 00565F9B    mov         byte ptr ds:[5F5584],0
+ 00565FA2    mov         dword ptr ds:[5F5588],0FFFFFF9C  // -100
+ 00565FAC    mov         dword ptr ds:[5F558C],0FFFFFF9C  // -100
+ 00565FB6    mov         eax,5F5D18
+ 00565FBB    call        @LStrClr                // gvar_005F5D18 := ''
+ 00565FC0    mov         al,1
+ 00565FC2    call        004B93E4                // helper(True)
+ 00565FC7    call        004BAC40                // helper
+ // Loop 1: Free 1101 GL objects from gvar_005F6688 (24-byte stride)
+ 00565FCC    mov         esi,44D                 // 1101
+ 00565FD1    mov         ebx,5F6688
+ 00565FD6    cmp         byte ptr [ebx],0
+ 00565FD9    je          00565FFF
+ 00565FDB    lea         eax,[ebp-4]
+ 00565FDE    mov         edx,ebx
+ 00565FE0    call        @LStrFromString
+ 00565FE5    mov         edx,dword ptr [ebp-4]
+ 00565FE8    mov         eax,dword ptr [edi]
+ 00565FEA    mov         eax,dword ptr [eax+2F8] // GLScene1
+ 00565FF0    mov         eax,dword ptr [eax+34]  // .Objects
+ 00565FF3    xor         ecx,ecx
+ 00565FF5    call        0047D35C                // FindObjectByName
+ 00565FFA    call        TObject.Free
+ 00565FFF    add         ebx,18                  // +24
+ 00566002    dec         esi
+ 00566003    jne         00565FD6
+ // Loop 2: Free 71 GL objects from gvar_005FCDC0 (56-byte stride)
+ 00566005    mov         esi,47                  // 71
+ 0056600A    mov         ebx,5FCDC0
+ 0056600F    cmp         byte ptr [ebx],0
+ 00566012    je          00566038
+ 00566014    lea         eax,[ebp-8]
+ 00566017    mov         edx,ebx
+ 00566019    call        @LStrFromString
+ 0056601E    mov         edx,dword ptr [ebp-8]
+ 00566021    mov         eax,dword ptr [edi]
+ 00566023    mov         eax,dword ptr [eax+2F8]
+ 00566029    mov         eax,dword ptr [eax+34]
+ 0056602C    xor         ecx,ecx
+ 0056602E    call        0047D35C
+ 00566033    call        TObject.Free
+ 00566038    add         ebx,38                  // +56
+ 0056603B    dec         esi
+ 0056603C    jne         0056600F
+ // Additional cleanup
+ 0056603E    call        00565D68                // cleanup helper
+ 00566043    call        00564FE0                // cleanup helper
+ // Loop 3: Clear 51 pairs of AnsiStrings in gvar_005FDD64 (36-byte stride)
+ 00566048    mov         esi,33                  // 51
+ 0056604D    mov         ebx,5FDD64
+ 00566052    mov         eax,ebx
+ 00566054    call        @LStrClr
+ 00566059    lea         eax,[ebx+4]
+ 0056605C    call        @LStrClr
+ 00566061    add         ebx,24                  // +36
+ 00566064    dec         esi
+ 00566065    jne         00566052
+ // Reset camera position
+ 00566067    call        00565E64                // ResetCameraPosition
+ // SEH finally cleanup
+ 0056606C    xor         eax,eax
+ 0056606E    pop         edx
+ ...
+ 00566094    ret
+
+--- DECOMPILED PASCAL ---
+
+var
+  Form1Ref: TForm1;                              // gvar_005F5524
+  ObjectNames: array[0..1100] of ShortString24;   // gvar_005F6688, 24 bytes each
+  MapNames:    array[0..70] of ShortString56;     // gvar_005FCDC0, 56 bytes each
+  StringPairs: array[0..50] of record             // gvar_005FDD64, 36 bytes each
+    Str1: AnsiString;
+    Str2: AnsiString;
+    Data: array[0..27] of Byte;
+  end;
+
+procedure TransitionState;
+var
+  TempStr1, TempStr2: AnsiString;
+  I: Integer;
+  Obj: TObject;
+begin
+  sub_00561C98(0, 0);  // stop audio/effects
+
+  // Set background to white
+  Form1Ref.GLSceneViewer1.Buffer.BackgroundColor.SetColor(1.0, 1.0, 1.0, 1.0);
+
+  gvar_005F55D0 := 0;
+  gvar_005F55D1 := 0;
+
+  // Restore main camera
+  Form1Ref.GLSceneViewer1.Camera := Form1Ref.kamera;
+
+  // Make key scene objects visible
+  Form1Ref.field_304.Visible := True;
+  Form1Ref.GLhrac.Visible := True;
+  Form1Ref.field_374.Visible := True;
+
+  gvar_005F5594 := 0;
+  sub_00561434;  // reset helper
+
+  gvar_005FE47C := 0;
+  gvar_005FE490 := 0;
+  gvar_005F5586 := 0;
+  gvar_005FE484 := 0;
+  gvar_005FE480 := 0;
+  gvar_005F5DFC := 0;
+  gvar_005FDD49 := 0;
+  GameState := 0;
+  gvar_005F5584 := 0;
+  gvar_005F5588 := -100;
+  gvar_005F558C := -100;
+  gvar_005F5D18 := '';
+
+  sub_004B93E4(True);
+  sub_004BAC40;
+
+  // Free all loaded 3D objects (small type, 1101 entries)
+  try
+    for I := 0 to 1100 do
+    begin
+      if ObjectNames[I][0] <> #0 then
+      begin
+        TempStr1 := ObjectNames[I];
+        Obj := Form1Ref.GLScene1.Objects.FindObjectByName(TempStr1, False);
+        Obj.Free;
+      end;
+    end;
+
+    // Free all loaded map objects (large type, 71 entries)
+    for I := 0 to 70 do
+    begin
+      if MapNames[I][0] <> #0 then
+      begin
+        TempStr2 := MapNames[I];
+        Obj := Form1Ref.GLScene1.Objects.FindObjectByName(TempStr2, False);
+        Obj.Free;
+      end;
+    end;
+
+    sub_00565D68;  // additional cleanup
+    sub_00564FE0;  // additional cleanup
+
+    // Clear 51 string pairs
+    for I := 0 to 50 do
+    begin
+      StringPairs[I].Str1 := '';
+      StringPairs[I].Str2 := '';
+    end;
+
+    ResetCameraPosition;  // sub_00565E64
+  finally
+    TempStr1 := '';
+    TempStr2 := '';
+  end;
+end;
+
+
+================================================================================
+6. sub_00565DD0 - "ShowFadingMessage" (line 5015)
+   Removes GL objects whose name starts with the given prefix string.
+   Iterates all 1101 object name entries; for each whose name begins
+   with the given text (AnsiPos = 1), finds and frees the GL object,
+   then clears the name from the table.
+================================================================================
+
+--- RAW ASSEMBLY ---
+
+//00565DD0
+procedure sub_00565DD0(Text: AnsiString {EAX});
+ 00565DD0    push        ebp
+ 00565DD1    mov         ebp,esp
+ 00565DD3    push        0                       // [ebp-4] local str
+ 00565DD5    push        0                       // [ebp-8] local str
+ 00565DD7    push        ebx
+ 00565DD8    push        esi
+ 00565DD9    push        edi
+ 00565DDA    mov         edi,eax                 // edi = Text
+ 00565DDC    xor         eax,eax                 // SEH setup
+ 00565DDE    push        ebp
+ 00565DDF    push        565E56
+ 00565DE4    push        dword ptr fs:[eax]
+ 00565DE7    mov         dword ptr fs:[eax],esp
+ 00565DEA    mov         esi,44D                 // 1101
+ 00565DEF    mov         ebx,5F6688              // ObjectNames array
+ // Loop:
+ 00565DF4    lea         eax,[ebp-4]
+ 00565DF7    mov         edx,ebx
+ 00565DF9    call        @LStrFromString         // str = ShortStr(ebx)
+ 00565DFE    mov         edx,dword ptr [ebp-4]   // edx = name string
+ 00565E01    mov         eax,edi                 // eax = Text
+ 00565E03    call        AnsiPos                 // AnsiPos(Text, name)
+ 00565E08    dec         eax                     // if result = 1
+ 00565E09    jne         00565E35
+ 00565E0B    lea         eax,[ebp-8]
+ 00565E0E    mov         edx,ebx
+ 00565E10    call        @LStrFromString
+ 00565E15    mov         edx,dword ptr [ebp-8]
+ 00565E18    mov         eax,[005F5524]          // Form1Ref
+ 00565E1D    mov         eax,dword ptr [eax+2F8] // GLScene1
+ 00565E23    mov         eax,dword ptr [eax+34]  // .Objects
+ 00565E26    xor         ecx,ecx
+ 00565E28    call        0047D35C                // FindObjectByName
+ 00565E2D    call        TObject.Free
+ 00565E32    mov         byte ptr [ebx],0        // clear name entry
+ // Next entry:
+ 00565E35    add         ebx,18                  // +24
+ 00565E38    dec         esi
+ 00565E39    jne         00565DF4
+ // SEH finally block
+ 00565E3B    xor         eax,eax
+ 00565E3D    pop         edx
+ ...
+ 00565E63    ret
+
+--- DECOMPILED PASCAL ---
+
+procedure ShowFadingMessage(const Text: AnsiString);
+var
+  I: Integer;
+  Name, NameCopy: AnsiString;
+  Obj: TObject;
+begin
+  try
+    for I := 0 to 1100 do
+    begin
+      Name := ObjectNames[I];
+      if AnsiPos(Text, Name) = 1 then
+      begin
+        NameCopy := ObjectNames[I];
+        Obj := Form1Ref.GLScene1.Objects.FindObjectByName(NameCopy, False);
+        Obj.Free;
+        ObjectNames[I][0] := #0;  // mark as empty
+      end;
+    end;
+  finally
+    Name := '';
+    NameCopy := '';
+  end;
+end;
+
+{ NOTE: Despite the user-given name "ShowFadingMessage", this function
+  actually removes GL scene objects whose names start with a given prefix.
+  A more accurate name would be "RemoveObjectsByPrefix". }
+
+
+================================================================================
+7. sub_0056455C - "EnterGameplay" (line 3068)
+   Transitions to gameplay state. If area 3 has a positive value,
+   transfers area 2's value into area 3 (accumulation), removes area 2,
+   and compacts the array. Finally sets GameState = 2.
+================================================================================
+
+--- RAW ASSEMBLY ---
+
+//0056455C
+procedure sub_0056455C;
+ 0056455C    mov         al,3
+ 0056455E    call        00562D80                // GetGameMode(3)
+ 00564563    test        eax,eax
+ 00564565    jle         00564596                // if <= 0, skip
+ 00564567    mov         byte ptr ds:[5F5596],1  // CompactLock = True
+ 0056456E    mov         al,2
+ 00564570    call        00562D80                // val2 = GetGameMode(2)
+ 00564575    mov         edx,eax
+ 00564577    xor         ecx,ecx
+ 00564579    mov         al,3
+ 0056457B    call        00562CF8                // SetGameMode(3, val2, False)
+ 00564580    or          edx,0FFFFFFFF           // edx = -1
+ 00564583    mov         al,2
+ 00564585    call        00564514                // sub_00564514(2, -1) - remove area 2
+ 0056458A    mov         byte ptr ds:[5F5596],0  // CompactLock = False
+ 00564591    call        00562C90                // ClearAllAreas (compact)
+ 00564596    mov         byte ptr ds:[5F5577],2  // GameState = 2 (gameplay)
+ 0056459D    ret
+
+--- DECOMPILED PASCAL ---
+
+procedure EnterGameplay;
+var
+  Val2: Integer;
+begin
+  if GetGameMode(3) > 0 then
+  begin
+    CompactLock := True;
+    Val2 := GetGameMode(2);
+    SetGameMode(3, Val2, False);    // add area 2's value to area 3
+    sub_00564514(2, -1);            // remove/invalidate area 2
+    CompactLock := False;
+    ClearAllAreas;                  // compact the array
+  end;
+  GameState := 2;  // enter gameplay state
+end;
+
+
+================================================================================
+8. sub_0056B7A0 - "ShowSubtitle" (line 9911)
+   Fades a map overlay's alpha channel in or out.
+   Finds 'map_' + Name in a GL material library, then adjusts the
+   material's alpha by +/- 0.01 per call depending on subtitle state.
+================================================================================
+
+--- RAW ASSEMBLY ---
+
+//0056B7A0
+procedure sub_0056B7A0(Name: AnsiString {EAX});
+ 0056B7A0    push        ebp
+ 0056B7A1    mov         ebp,esp
+ 0056B7A3    push        0                       // [ebp-4] local str
+ 0056B7A5    push        ebx
+ 0056B7A6    mov         ebx,eax                 // ebx = Name
+ 0056B7A8    xor         eax,eax                 // SEH setup
+ 0056B7AA    push        ebp
+ 0056B7AB    push        56B8B3
+ 0056B7B0    push        dword ptr fs:[eax]
+ 0056B7B3    mov         dword ptr fs:[eax],esp
+ 0056B7B6    lea         eax,[ebp-4]
+ 0056B7B9    mov         ecx,ebx                 // Name
+ 0056B7BB    mov         edx,56B8C8              // 'map_'
+ 0056B7C0    call        @LStrCat3               // [ebp-4] = 'map_' + Name
+ 0056B7C5    mov         edx,dword ptr [ebp-4]
+ 0056B7C8    mov         eax,[005F5524]           // Form1Ref
+ 0056B7CD    mov         eax,dword ptr [eax+31C] // MatLib (GLMaterialLibrary)
+ 0056B7D3    mov         eax,dword ptr [eax+34]  // .Materials
+ 0056B7D6    call        004776DC                // FindMaterial('map_' + Name)
+ 0056B7DB    mov         ebx,eax                 // ebx = material
+ 0056B7DD    mov         eax,[005F5524]
+ 0056B7E2    call        005AB214                // sub_005AB214(Form1) -> Boolean
+ 0056B7E7    test        al,al
+ 0056B7E9    jne         0056B7F4                // if True -> fade in
+ 0056B7EB    cmp         byte ptr ds:[5F5559],0  // SubtitleFadeOut flag
+ 0056B7F2    jne         0056B84B                // if set -> fade out
+ // --- Fade In ---
+ 0056B7F4    fld         tbyte ptr ds:[56B8D0]   // 0.01
+ 0056B7FA    mov         eax,dword ptr [ebx+18]
+ 0056B7FD    mov         eax,dword ptr [eax+18]
+ 0056B800    mov         edx,dword ptr [eax+1C]  // Color object
+ 0056B803    fadd        dword ptr [edx+24]      // alpha + 0.01
+ 0056B806    fcomp       dword ptr ds:[56B8DC]   // compare with 1.0
+ 0056B80C    fnstsw      al
+ 0056B80E    sahf
+ 0056B80F    jae         0056B838                // if >= 1.0
+ // Alpha not yet 1.0: set to alpha + 0.01
+ 0056B811    fld         tbyte ptr ds:[56B8D0]
+ 0056B817    ...                                 // compute alpha + 0.01
+ 0056B82C    mov         edx,3                   // component index 3 = alpha
+ 0056B831    call        TGLColor.SetRed          // SetAlpha(alpha + 0.01)
+ 0056B836    jmp         0056B89D
+ // Alpha capped at 1.0
+ 0056B838    push        3F800000                // 1.0
+ 0056B83D    mov         eax,edx
+ 0056B83F    mov         edx,3
+ 0056B844    call        TGLColor.SetRed          // SetAlpha(1.0)
+ 0056B849    jmp         0056B89D
+ // --- Fade Out ---
+ 0056B84B    fld         tbyte ptr ds:[56B8D0]   // 0.01
+ ...                                             // alpha - 0.01
+ 0056B85D    fcomp       0.0
+ 0056B865    sahf
+ 0056B866    jbe         0056B88F                // if <= 0
+ // Alpha still > 0: set to alpha - 0.01
+ ...
+ 0056B888    call        TGLColor.SetRed          // SetAlpha(alpha - 0.01)
+ 0056B88D    jmp         0056B89D
+ // Alpha clamped to 0
+ 0056B88F    push        0                       // 0.0
+ 0056B891    ...
+ 0056B898    call        TGLColor.SetRed          // SetAlpha(0.0)
+ // Cleanup
+ 0056B89D    xor         eax,eax
+ ...
+ 0056B8BD    ret
+
+--- DECOMPILED PASCAL ---
+
+var
+  SubtitleFadeOut: Boolean;  // gvar_005F5559
+
+procedure ShowSubtitle(const Name: AnsiString);
+var
+  FullName: AnsiString;
+  Material: TGLLibMaterial;  // or similar material type
+  Color: TGLColor;
+  CurrentAlpha: Single;
+  FadeIn: Boolean;
+begin
+  try
+    FullName := 'map_' + Name;
+    Material := Form1Ref.GLMaterialLibrary1.Materials.FindMaterial(FullName);
+
+    FadeIn := sub_005AB214(Form1Ref);
+
+    if FadeIn then
+    begin
+      // Fade in: increase alpha toward 1.0
+      Color := Material.Material.FrontProperties.Diffuse;
+      CurrentAlpha := Color.Alpha;
+      if CurrentAlpha + 0.01 < 1.0 then
+        Color.Alpha := CurrentAlpha + 0.01
+      else
+        Color.Alpha := 1.0;
+    end
+    else if SubtitleFadeOut then
+    begin
+      // Fade out: decrease alpha toward 0.0
+      Color := Material.Material.FrontProperties.Diffuse;
+      CurrentAlpha := Color.Alpha;
+      if CurrentAlpha - 0.01 > 0.0 then
+        Color.Alpha := CurrentAlpha - 0.01
+      else
+        Color.Alpha := 0.0;
+    end;
+  finally
+    FullName := '';
+  end;
+end;
+
+
+================================================================================
+9. sub_005706A0 - "TurnPlayer" (line 14307)
+   Rotates the player horizontally by Delta degrees.
+   Updates PlayerYaw in GameData, wraps to [0..360), and
+   adjusts the GL camera's Direction.Z accordingly.
+   Stack-passed Single parameter (stdcall-like, ret 4).
+================================================================================
+
+--- RAW ASSEMBLY ---
+
+//005706A0
+procedure sub_005706A0(Delta: Single {[ebp+8]});
+ 005706A0    push        ebp
+ 005706A1    mov         ebp,esp
+ 005706A3    push        ebx
+ 005706A4    mov         ebx,5FE498              // GameDataPtr
+ 005706A9    fld         dword ptr [ebx+1E0]     // PlayerYaw
+ 005706AF    fadd        dword ptr [ebp+8]       // + Delta
+ 005706B2    fstp        dword ptr [ebx+1E0]     // store
+ 005706B8    wait
+ // Wrap below 0
+ 005706B9    fld         dword ptr [ebx+1E0]
+ 005706BF    fcomp       0.0
+ 005706C5    fnstsw      al
+ 005706C7    sahf
+ 005706C8    jae         005706DD
+ 005706CA    fld         360.0
+ 005706D0    fadd        dword ptr [ebx+1E0]
+ 005706D6    fstp        dword ptr [ebx+1E0]     // += 360
+ 005706DC    wait
+ // Wrap above 360
+ 005706DD    fld         dword ptr [ebx+1E0]
+ 005706E3    fcomp       360.0
+ 005706E9    fnstsw      al
+ 005706EB    sahf
+ 005706EC    jb          00570701
+ 005706EE    fld         dword ptr [ebx+1E0]
+ 005706F4    fsub        360.0
+ 005706FA    fstp        dword ptr [ebx+1E0]     // -= 360
+ 00570700    wait
+ // Update camera Direction.Z
+ 00570701    mov         eax,[005F5524]
+ 00570706    mov         eax,dword ptr [eax+308] // Form1.field_308 (camera rig)
+ 0057070C    mov         eax,dword ptr [eax+70]  // .Direction (TGLCoordinates)
+ 0057070F    fld         dword ptr [eax+20]      // Direction.Z
+ 00570712    fsub        dword ptr [ebp+8]       // - Delta
+ 00570715    add         esp,0FFFFFFFC            // push Single
+ 00570718    fstp        dword ptr [esp]
+ 0057071B    wait
+ 0057071C    mov         edx,2                   // Z index
+ 00570721    call        TGLCoordinates.SetX     // SetComponent(2, newZ)
+ // Save camera Z to GameData
+ 00570726    mov         eax,[005F5524]
+ 0057072B    mov         eax,dword ptr [eax+308]
+ 00570731    mov         eax,dword ptr [eax+70]
+ 00570734    mov         eax,dword ptr [eax+20]  // Direction.Z as raw dword
+ 00570737    mov         dword ptr [ebx+1E8],eax // GameData.SavedCamZ
+ 0057073D    pop         ebx
+ 0057073E    pop         ebp
+ 0057073F    ret         4                       // clean up stack param
+
+--- DECOMPILED PASCAL ---
+
+type
+  PGameData = ^TGameData;
+  // Offsets within GameData:
+  //   +$1E0 = PlayerYaw: Single
+  //   +$1E4 = PlayerPitch: Single
+  //   +$1E8 = SavedCameraZ: Single
+  //   +$1EC = SavedCameraPitch: Single
+
+var
+  GameDataPtr: PGameData;  // gvar_005FE498
+
+procedure TurnPlayer(Delta: Single);
+var
+  CamDir: TGLCoordinates;
+begin
+  GameDataPtr.PlayerYaw := GameDataPtr.PlayerYaw + Delta;
+
+  // Wrap yaw to [0, 360)
+  if GameDataPtr.PlayerYaw < 0.0 then
+    GameDataPtr.PlayerYaw := GameDataPtr.PlayerYaw + 360.0;
+  if GameDataPtr.PlayerYaw >= 360.0 then
+    GameDataPtr.PlayerYaw := GameDataPtr.PlayerYaw - 360.0;
+
+  // Update the GL camera's direction Z component
+  CamDir := Form1Ref.field_308.Direction;
+  CamDir.Z := CamDir.Z - Delta;
+
+  // Cache the resulting camera Z
+  GameDataPtr.SavedCameraZ := CamDir.Z;
+end;
+
+
+================================================================================
+10. sub_0057074C - "PitchPlayer" (line 14356)
+    Adjusts the player's vertical look angle by Delta degrees.
+    Clamps the resulting pitch to [25..150] range.
+    Updates the GL camera's pitch Direction.X accordingly.
+    Stack-passed Single parameter (ret 4).
+================================================================================
+
+--- RAW ASSEMBLY ---
+
+//0057074C
+procedure sub_0057074C(Delta: Single {[ebp+8]});
+ 0057074C    push        ebp
+ 0057074D    mov         ebp,esp
+ 0057074F    push        ebx
+ 00570750    mov         ebx,5FE498              // GameDataPtr
+ // Early exit if delta = 0
+ 00570755    fld         dword ptr [ebp+8]
+ 00570758    fcomp       0.0
+ 0057075E    fnstsw      al
+ 00570760    sahf
+ 00570761    je          00570814                // exit if zero
+ // Clamp for negative delta (looking up)
+ 00570767    fld         dword ptr [ebp+8]
+ 0057076A    fcomp       0.0
+ 00570770    fnstsw      al
+ 00570772    sahf
+ 00570773    jae         00570799                // skip if delta >= 0
+ 00570775    fld         dword ptr [ebx+1E4]     // PlayerPitch
+ 0057077B    fadd        dword ptr [ebp+8]       // + Delta
+ 0057077E    fcomp       25.0
+ 00570784    fnstsw      al
+ 00570786    sahf
+ 00570787    jae         00570799                // skip if >= 25 (still valid)
+ // Would go below 25: clamp delta
+ 00570789    fld         25.0
+ 0057078F    fsub        dword ptr [ebx+1E4]    // 25 - pitch
+ 00570795    fstp        dword ptr [ebp+8]
+ 00570798    wait
+ // Clamp for positive delta (looking down)
+ 00570799    fld         dword ptr [ebp+8]
+ 0057079C    fcomp       0.0
+ 005707A2    fnstsw      al
+ 005707A4    sahf
+ 005707A5    jbe         005707CB                // skip if delta <= 0
+ 005707A7    fld         dword ptr [ebx+1E4]
+ 005707AD    fadd        dword ptr [ebp+8]
+ 005707B0    fcomp       150.0
+ 005707B6    fnstsw      al
+ 005707B8    sahf
+ 005707B9    jbe         005707CB                // skip if <= 150 (still valid)
+ // Would exceed 150: clamp delta
+ 005707BB    fld         150.0
+ 005707C1    fsub        dword ptr [ebx+1E4]    // 150 - pitch
+ 005707C7    fstp        dword ptr [ebp+8]
+ 005707CA    wait
+ // Apply clamped delta
+ 005707CB    fld         dword ptr [ebx+1E4]     // PlayerPitch
+ 005707D1    fadd        dword ptr [ebp+8]       // + Delta
+ 005707D4    fstp        dword ptr [ebx+1E4]     // store
+ 005707DA    wait
+ // Update camera pitch
+ 005707DB    mov         eax,[005F5524]
+ 005707E0    mov         eax,dword ptr [eax+348] // Form1.field_348 (pitch rig)
+ 005707E6    mov         eax,dword ptr [eax+70]  // .Direction
+ 005707E9    fld         dword ptr [eax+18]      // Direction.X
+ 005707EC    fsub        dword ptr [ebp+8]       // - Delta
+ 005707EF    add         esp,0FFFFFFFC
+ 005707F2    fstp        dword ptr [esp]
+ 005707F5    wait
+ 005707F6    xor         edx,edx                 // X index = 0
+ 005707F8    call        TGLCoordinates.SetX
+ // Cache camera pitch value
+ 005707FD    mov         eax,[005F5524]
+ 00570802    mov         eax,dword ptr [eax+348]
+ 00570808    mov         eax,dword ptr [eax+70]
+ 0057080B    mov         eax,dword ptr [eax+18]
+ 0057080E    mov         dword ptr [ebx+1EC],eax // SavedCameraPitch
+ 00570814    pop         ebx
+ 00570815    pop         ebp
+ 00570816    ret         4
+
+--- DECOMPILED PASCAL ---
+
+procedure PitchPlayer(Delta: Single);
+var
+  CamDir: TGLCoordinates;
+begin
+  if Delta = 0.0 then Exit;
+
+  // Clamp delta so pitch stays in [25..150]
+  if Delta < 0.0 then
+  begin
+    if GameDataPtr.PlayerPitch + Delta < 25.0 then
+      Delta := 25.0 - GameDataPtr.PlayerPitch;
+  end;
+
+  if Delta > 0.0 then
+  begin
+    if GameDataPtr.PlayerPitch + Delta > 150.0 then
+      Delta := 150.0 - GameDataPtr.PlayerPitch;
+  end;
+
+  GameDataPtr.PlayerPitch := GameDataPtr.PlayerPitch + Delta;
+
+  // Update the GL camera's pitch (Direction.X)
+  CamDir := Form1Ref.field_348.Direction;
+  CamDir.X := CamDir.X - Delta;
+
+  // Cache the resulting camera pitch
+  GameDataPtr.SavedCameraPitch := CamDir.X;
+end;
+
+
+================================================================================
+11. sub_00570828 - "GetPlayerAngle" (line 14422)
+    Determines the cardinal direction the player is facing.
+    Returns 0=North, 1=East, 2=South, 3=West, or $C8=invalid
+    (if pitch is outside the [75..126] "level" range).
+    Yaw ranges:  N = (335..360] or [0..25],  E = (65..115],
+                  S = (155..205],              W = (245..295]
+================================================================================
+
+--- RAW ASSEMBLY ---
+
+//00570828
+function sub_00570828: Byte;
+ 00570828    mov         ecx,5FE498              // GameDataPtr
+ 0057082D    mov         dl,0C8                  // default = $C8 (200 = invalid)
+ // Check pitch in valid range
+ 0057082F    fld         dword ptr [ecx+1E4]     // PlayerPitch
+ 00570835    fcomp       126.0
+ 0057083B    fnstsw      al
+ 0057083D    sahf
+ 0057083E    jae         005708E9                // pitch >= 126 -> invalid
+ 00570844    fld         dword ptr [ecx+1E4]
+ 0057084A    fcomp       75.0
+ 00570850    fnstsw      al
+ 00570852    sahf
+ 00570853    jbe         005708E9                // pitch <= 75 -> invalid
+ // Pitch OK, determine yaw direction
+ // Check North: yaw <= 25 or yaw > 335
+ 00570859    fld         dword ptr [ecx+1E0]     // PlayerYaw
+ 0057085F    fcomp       25.0
+ 00570865    fnstsw      al
+ 00570867    sahf
+ 00570868    jbe         0057087B                // yaw <= 25 -> North
+ 0057086A    fld         dword ptr [ecx+1E0]
+ 00570870    fcomp       335.0
+ 00570876    fnstsw      al
+ 00570878    sahf
+ 00570879    jbe         0057087D                // yaw <= 335 -> not north
+ 0057087B    xor         edx,edx                 // result = 0 (North)
+ // Check West: 245 < yaw <= 295
+ 0057087D    fld         dword ptr [ecx+1E0]
+ 00570883    fcomp       295.0
+ 00570889    fnstsw      al
+ 0057088B    sahf
+ 0057088C    ja          005708A1                // > 295 -> skip
+ 0057088E    fld         dword ptr [ecx+1E0]
+ 00570894    fcomp       245.0
+ 0057089A    fnstsw      al
+ 0057089C    sahf
+ 0057089D    jbe         005708A1                // <= 245 -> skip
+ 0057089F    mov         dl,3                    // West
+ // Check South: 155 < yaw <= 205
+ 005708A1    fld         dword ptr [ecx+1E0]
+ 005708A7    fcomp       205.0
+ 005708AD    fnstsw      al
+ 005708AF    sahf
+ 005708B0    ja          005708C5
+ 005708B2    fld         dword ptr [ecx+1E0]
+ 005708B8    fcomp       155.0
+ 005708BE    fnstsw      al
+ 005708C0    sahf
+ 005708C1    jbe         005708C5
+ 005708C3    mov         dl,2                    // South
+ // Check East: 65 < yaw <= 115
+ 005708C5    fld         dword ptr [ecx+1E0]
+ 005708CB    fcomp       115.0
+ 005708D1    fnstsw      al
+ 005708D3    sahf
+ 005708D4    ja          005708E9
+ 005708D6    fld         dword ptr [ecx+1E0]
+ 005708DC    fcomp       65.0
+ 005708E2    fnstsw      al
+ 005708E4    sahf
+ 005708E5    jbe         005708E9
+ 005708E7    mov         dl,1                    // East
+ 005708E9    mov         eax,edx                 // return
+ 005708EB    ret
+
+--- DECOMPILED PASCAL ---
+
+const
+  DIR_NORTH   = 0;
+  DIR_EAST    = 1;
+  DIR_SOUTH   = 2;
+  DIR_WEST    = 3;
+  DIR_INVALID = $C8;  // pitch out of "level looking" range
+
+function GetPlayerAngle: Byte;
+var
+  Yaw, Pitch: Single;
+begin
+  Pitch := GameDataPtr.PlayerPitch;
+  Yaw   := GameDataPtr.PlayerYaw;
+
+  Result := DIR_INVALID;
+
+  // Only return a valid direction if pitch is roughly level
+  if (Pitch >= 126.0) or (Pitch <= 75.0) then
+    Exit;
+
+  // Default to North for yaw near 0/360
+  if (Yaw <= 25.0) or (Yaw > 335.0) then
+    Result := DIR_NORTH;
+
+  // West quadrant
+  if (Yaw > 245.0) and (Yaw <= 295.0) then
+    Result := DIR_WEST;
+
+  // South quadrant
+  if (Yaw > 155.0) and (Yaw <= 205.0) then
+    Result := DIR_SOUTH;
+
+  // East quadrant
+  if (Yaw > 65.0) and (Yaw <= 115.0) then
+    Result := DIR_EAST;
+end;
+
+{ NOTE: The checks are not mutually exclusive with early-exit;
+  they fall through sequentially with the last matching overwriting.
+  In practice the ranges don't overlap so only one matches. }
+
+
+================================================================================
+12. sub_00570914 - "SetPlayerAngle" (line 14485)
+    Adds a value to gvar_005FE690 (accumulated rotation counter)
+    and clamps the result to a maximum of 172 ($AC).
+================================================================================
+
+--- RAW ASSEMBLY ---
+
+//00570914
+procedure sub_00570914(Value: Byte {AL});
+ 00570914    and         eax,0FF                 // zero-extend byte
+ 00570919    add         dword ptr ds:[5FE690],eax  // RotationAccum += Value
+ 0057091F    cmp         dword ptr ds:[5FE690],0AC  // > 172?
+ 00570929    jle         00570935
+ 0057092B    mov         dword ptr ds:[5FE690],0AC  // clamp to 172
+ 00570935    ret
+
+--- DECOMPILED PASCAL ---
+
+var
+  RotationAccum: Integer;  // gvar_005FE690
+
+procedure SetPlayerAngle(Value: Byte);
+begin
+  RotationAccum := RotationAccum + Value;
+  if RotationAccum > 172 then
+    RotationAccum := 172;
+end;
+
+
+================================================================================
+13. sub_00570938 - "ResetPlayerPos" (line 14496)
+    Sets the player character animation based on current state.
+    If gvar_005FE6EA > 0 (player active): plays 'hraje' (Czech: "plays")
+    and calls sub_00561070(2).
+    Otherwise: plays 'ceka' (Czech: "waits") idle animation.
+================================================================================
+
+--- RAW ASSEMBLY ---
+
+//00570938
+procedure sub_00570938;
+ 00570938    cmp         word ptr ds:[5FE6EA],0  // PlayerActiveState
+ 00570940    jbe         0057095B                // if 0, go idle
+ // Active state
+ 00570942    mov         cl,1                    // Looped = True
+ 00570944    mov         edx,570978              // 'hraje'
+ 00570949    mov         eax,[00607E00]          // GLActor (player model)
+ 0057094E    call        00496368                // SwitchToAnimation('hraje', True)
+ 00570953    mov         al,2
+ 00570955    call        00561070                // sub_00561070(2)
+ 0057095A    ret
+ // Idle state
+ 0057095B    mov         cl,1
+ 0057095D    mov         edx,570988              // 'ceka'
+ 00570962    mov         eax,[00607E00]
+ 00570967    call        00496368                // SwitchToAnimation('ceka', True)
+ 0057096C    ret
+
+--- DECOMPILED PASCAL ---
+
+var
+  PlayerActiveState: Word;   // gvar_005FE6EA
+  PlayerActor: TGLActor;     // gvar_00607E00
+
+procedure ResetPlayerPos;
+begin
+  if PlayerActiveState > 0 then
+  begin
+    PlayerActor.SwitchToAnimation('hraje', True);  // "plays" animation
+    sub_00561070(2);
+  end
+  else
+  begin
+    PlayerActor.SwitchToAnimation('ceka', True);   // "waits" idle animation
+  end;
+end;
+
+
+================================================================================
+14. sub_005AB24C - "LoadSettings" (line 70025)
+    Reads game settings from Windows Registry under Software\Sudokop\Legie.
+    Settings: volume (0-255), borders (bool), inverse mouse (bool -> +1/-1),
+    vsync (bool), mouse sensitivity (validated via bitmask, default 7).
+================================================================================
+
+--- RAW ASSEMBLY ---
+
+//005AB24C
+procedure sub_005AB24C(Self: TForm1 {EAX});
+ 005AB24C    push        ebx
+ 005AB24D    push        esi
+ 005AB24E    mov         ebx,eax                 // ebx = Form1
+ 005AB250    mov         esi,5F5528              // esi -> RegIniFile global
+ 005AB255    mov         ecx,5AB348              // 'Software\Sudokop'
+ 005AB25A    mov         dl,1
+ 005AB25C    mov         eax,[0043280C]          // TRegIniFile class
+ 005AB261    call        TRegIniFile.Create
+ 005AB266    mov         dword ptr [esi],eax     // store instance
+ // Read volume (default 255)
+ 005AB268    push        0FF
+ 005AB26D    mov         ecx,5AB364              // 'volume'
+ 005AB272    mov         edx,5AB374              // 'Legie'
+ 005AB277    mov         eax,dword ptr [esi]
+ 005AB279    call        TRegIniFile.ReadInteger
+ 005AB27E    mov         [005F552C],al           // Volume = result (byte)
+ // Read borders (default False)
+ 005AB283    push        0
+ 005AB285    mov         edx,5AB374              // 'Legie'
+ 005AB28A    mov         ecx,5AB384              // 'borders'
+ 005AB28F    mov         eax,dword ptr [esi]
+ 005AB291    call        TRegIniFile.ReadBool
+ 005AB296    mov         [005F552D],al           // ShowBorders
+ // Read inverse (default False)
+ 005AB29B    push        0
+ 005AB29D    mov         edx,5AB374              // 'Legie'
+ 005AB2A2    mov         ecx,5AB394              // 'inverse'
+ 005AB2A7    mov         eax,dword ptr [esi]
+ 005AB2A9    call        TRegIniFile.ReadBool
+ 005AB2AE    test        al,al
+ 005AB2B0    je          005AB2BB
+ 005AB2B2    mov         byte ptr ds:[5F552E],1  // InverseMouse = 1
+ 005AB2B9    jmp         005AB2C2
+ 005AB2BB    mov         byte ptr ds:[5F552E],0FF // InverseMouse = -1 (as ShortInt)
+ // Read vsync (default False)
+ 005AB2C2    push        0
+ 005AB2C4    mov         edx,5AB374
+ 005AB2C9    mov         ecx,5AB3A4              // 'vsync'
+ 005AB2CE    mov         eax,dword ptr [esi]
+ 005AB2D0    call        TRegIniFile.ReadBool
+ 005AB2D5    test        al,al
+ 005AB2D7    je          005AB2E6
+ 005AB2D9    mov         eax,dword ptr [ebx+2FC] // GLSceneViewer1
+ 005AB2DF    mov         byte ptr [eax+20C],0    // VSync = vsmSync
+ // Read mouse sensitivity (default 7)
+ 005AB2E6    push        7
+ 005AB2E8    mov         edx,5AB374
+ 005AB2ED    mov         ecx,5AB3B4              // 'mouse'
+ 005AB2F2    mov         eax,dword ptr [esi]
+ 005AB2F4    call        TRegIniFile.ReadInteger
+ 005AB2F9    mov         [005F5D34],al           // MouseSensitivity
+ // Validate mouse sensitivity via bitmask lookup
+ 005AB2FE    mov         al,[005F5D34]
+ 005AB303    cmp         al,0F
+ 005AB305    ja          005AB311
+ 005AB307    and         eax,7F
+ 005AB30A    bt          dword ptr ds:[5AB3BC],eax
+ 005AB311    jb          005AB31A                // valid if bit set
+ 005AB313    mov         byte ptr ds:[5F5D34],7  // default to 7
+ // Clamp volume to 0..255
+ 005AB31A    cmp         byte ptr ds:[5F552C],0
+ 005AB321    jae         005AB32A
+ 005AB323    mov         byte ptr ds:[5F552C],0
+ 005AB32A    cmp         byte ptr ds:[5F552C],0FF
+ 005AB331    jbe         005AB33A
+ 005AB333    mov         byte ptr ds:[5F552C],0FF
+ 005AB33A    pop         esi
+ 005AB33B    pop         ebx
+ 005AB33C    ret
+
+--- DECOMPILED PASCAL ---
+
+var
+  RegIniFile:       TRegIniFile;  // gvar_005F5528
+  Volume:           Byte;         // gvar_005F552C
+  ShowBorders:      Boolean;      // gvar_005F552D
+  InverseMouseY:    ShortInt;     // gvar_005F552E  (+1 or -1)
+  MouseSensitivity: Byte;         // gvar_005F5D34
+  ValidMouseValues: set of 0..15; // gvar_005AB3BC (bitmask)
+
+procedure LoadSettings(Form: TForm1);
+begin
+  RegIniFile := TRegIniFile.Create('Software\Sudokop');
+
+  Volume := TRegIniFile(RegIniFile).ReadInteger('Legie', 'volume', 255);
+  ShowBorders := TRegIniFile(RegIniFile).ReadBool('Legie', 'borders', False);
+
+  if TRegIniFile(RegIniFile).ReadBool('Legie', 'inverse', False) then
+    InverseMouseY := 1
+  else
+    InverseMouseY := -1;
+
+  if TRegIniFile(RegIniFile).ReadBool('Legie', 'vsync', False) then
+    Form.GLSceneViewer1.VSync := vsmSync;
+
+  MouseSensitivity := TRegIniFile(RegIniFile).ReadInteger('Legie', 'mouse', 7);
+
+  // Validate mouse sensitivity against allowed values bitmask
+  if (MouseSensitivity > 15) or
+     not (MouseSensitivity in ValidMouseValues) then
+    MouseSensitivity := 7;
+
+  // Defensive volume clamping (redundant for Byte type)
+  if Volume < 0 then Volume := 0;
+  if Volume > 255 then Volume := 255;
+end;
+
+
+================================================================================
+15. sub_005AB3C0 - "SaveSettings" (line 70094)
+    Saves current game settings to Windows Registry.
+    Writes volume, borders flag, and mouse sensitivity,
+    then frees the TRegIniFile instance.
+================================================================================
+
+--- RAW ASSEMBLY ---
+
+//005AB3C0
+procedure sub_005AB3C0;
+ 005AB3C0    call        004A1C80                // GetCurrentVolume -> EAX
+ 005AB3C5    push        eax                     // Value for WriteInteger
+ 005AB3C6    mov         ecx,5AB424              // 'volume'
+ 005AB3CB    mov         edx,5AB434              // 'Legie'
+ 005AB3D0    mov         eax,[005F5528]          // RegIniFile
+ 005AB3D5    call        TRegIniFile.WriteInteger
+ // Save borders
+ 005AB3DA    mov         al,[005F552D]           // ShowBorders
+ 005AB3DF    push        eax
+ 005AB3E0    mov         edx,5AB434              // 'Legie'
+ 005AB3E5    mov         ecx,5AB444              // 'borders'
+ 005AB3EA    mov         eax,[005F5528]
+ 005AB3EF    call        TRegIniFile.WriteBool
+ // Save mouse sensitivity
+ 005AB3F4    xor         eax,eax
+ 005AB3F6    mov         al,[005F5D34]           // MouseSensitivity
+ 005AB3FB    push        eax
+ 005AB3FC    mov         edx,5AB434              // 'Legie'
+ 005AB401    mov         ecx,5AB454              // 'mouse'
+ 005AB406    mov         eax,[005F5528]
+ 005AB40B    call        TRegIniFile.WriteInteger
+ // Free RegIniFile
+ 005AB410    mov         eax,[005F5528]
+ 005AB415    call        TObject.Free
+ 005AB41A    ret
+
+--- DECOMPILED PASCAL ---
+
+procedure SaveSettings;
+var
+  CurrentVolume: Integer;
+begin
+  CurrentVolume := GetCurrentVolume;  // sub_004A1C80
+
+  RegIniFile.WriteInteger('Legie', 'volume', CurrentVolume);
+  RegIniFile.WriteBool('Legie', 'borders', ShowBorders);
+  RegIniFile.WriteInteger('Legie', 'mouse', MouseSensitivity);
+
+  RegIniFile.Free;
+end;
+
+{ NOTE: SaveSettings does NOT save 'inverse' or 'vsync' back to registry,
+  unlike LoadSettings which reads them. This may be intentional (read-only
+  settings configured externally) or an oversight in the original code. }
+
+
+================================================================================
+  GLOBAL VARIABLE SUMMARY
+================================================================================
+
+  gvar_005F5577  GameState: Byte           - Main game state machine value
+  gvar_005F5524  Form1Ref: TForm1          - Pointer to the main form
+  gvar_005FE498  GameDataPtr: Pointer      - Player/game data structure
+       +$1E0     PlayerYaw: Single         - Horizontal rotation [0..360)
+       +$1E4     PlayerPitch: Single       - Vertical rotation [25..150]
+       +$1E8     SavedCameraZ: Single      - Cached camera yaw value
+       +$1EC     SavedCameraPitch: Single  - Cached camera pitch value
+  gvar_005FE568  ClickAreaArray[0..25]     - 26 entries, 8 bytes each (ID + Value)
+  gvar_005FE6A0  ActiveAreaIndex: Byte     - Index of selected click area
+  gvar_005F5596  CompactLock: Boolean      - Prevents array compaction
+  gvar_005F5528  RegIniFile: TRegIniFile   - Registry settings handle
+  gvar_005F552C  Volume: Byte              - Audio volume (0-255)
+  gvar_005F552D  ShowBorders: Boolean      - Border display toggle
+  gvar_005F552E  InverseMouseY: ShortInt   - Mouse Y inversion (+1 or -1)
+  gvar_005F5D34  MouseSensitivity: Byte    - Mouse sensitivity (default 7)
+  gvar_005FE690  RotationAccum: Integer    - Rotation accumulator (max 172)
+  gvar_005FE6EA  PlayerActiveState: Word   - Player activity flag
+  gvar_00607E00  PlayerActor: TGLActor     - Player 3D character model
+  gvar_005F6688  ObjectNames[0..1100]      - Loaded 3D object names (24-byte ShortStrings)
+  gvar_005FCDC0  MapNames[0..70]           - Loaded map object names (56-byte ShortStrings)
+  gvar_005FDD64  StringPairs[0..50]        - String pair table (36 bytes each)
+  gvar_005F5559  SubtitleFadeOut: Boolean  - Subtitle fade direction flag
+
+
+================================================================================
+  FORM1 FIELD OFFSET MAP (partial)
+================================================================================
+
+  +$2F8  GLScene1: TGLScene
+  +$2FC  GLSceneViewer1: TGLSceneViewer
+  +$304  (GL object - scene root or light)
+  +$308  (GL object - camera yaw rig / "bod" dummy)
+  +$30C  kamera: TGLCamera
+  +$31C  GLMaterialLibrary1: TGLMaterialLibrary
+  +$334  GLhrac: TGLDummyCube (player container)
+  +$348  (GL object - camera pitch rig)
+  +$374  (GL object - another scene element)
+  +$37C  pak: TGLDummyCube
+
+
+================================================================================
+  END OF DECOMPILATION
+================================================================================

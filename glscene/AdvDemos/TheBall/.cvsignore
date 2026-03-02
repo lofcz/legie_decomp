@@ -1,0 +1,10 @@
+*.dcu
+*.~dsk
+*.dsk
+*.~pas
+*.~dfm
+*.~dpr
+*.dof
+*.cfg
+ode.dll
+bass.dll

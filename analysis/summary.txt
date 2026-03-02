@@ -1,0 +1,222 @@
+======================================================================
+LEGIE ASSEMBLY ANALYSIS SUMMARY
+======================================================================
+
+Total functions parsed: 5606
+Total assembly lines:   396672
+Unique string literals: 1575
+Global variables:       1133
+Game state writers:     16
+
+FUNCTIONS BY UNIT:
+--------------------------------------------------
+  _Unit111                           5 funcs  124746 asm lines
+  Unit1                            171 funcs   68953 asm lines
+  Controls                         622 funcs   21485 asm lines
+  Classes                          504 funcs   16639 asm lines
+  Forms                            374 funcs   14674 asm lines
+  Graphics                         300 funcs   11417 asm lines
+  jpeg                             119 funcs   10892 asm lines
+  GLVectorFileObjects              273 funcs   10360 asm lines
+  GLScene                          282 funcs    9122 asm lines
+  variants                         109 funcs    8044 asm lines
+  GLTexture                        261 funcs    8016 asm lines
+  sysutils                         216 funcs    8013 asm lines
+  Menus                            182 funcs    7967 asm lines
+  system                           203 funcs    7790 asm lines
+  GLObjects                        132 funcs    5678 asm lines
+  _Unit97                           51 funcs    4998 asm lines
+  _Unit69                          146 funcs    4877 asm lines
+  _Unit96                           38 funcs    3686 asm lines
+  _Unit61                            1 funcs    3615 asm lines
+  _Unit66                          117 funcs    2171 asm lines
+  VectorLists                       84 funcs    2157 asm lines
+  ImgList                           45 funcs    2001 asm lines
+  PersistentClasses                 62 funcs    1790 asm lines
+  _Unit102                          25 funcs    1725 asm lines
+  _Unit114                           4 funcs    1667 asm lines
+  _Unit76                           46 funcs    1602 asm lines
+  GLBitmapFont                      51 funcs    1538 asm lines
+  _Unit67                           72 funcs    1446 asm lines
+  GLGraphics                        27 funcs    1397 asm lines
+  ActnList                          68 funcs    1357 asm lines
+  Dialogs                           25 funcs    1328 asm lines
+  TypInfo                           33 funcs    1319 asm lines
+  _Unit5                            42 funcs    1313 asm lines
+  _Unit107                          11 funcs    1254 asm lines
+  _Unit118                           6 funcs    1147 asm lines
+  HelpIntfs                         19 funcs    1125 asm lines
+  StdCtrls                          46 funcs    1082 asm lines
+  Registry                          28 funcs    1009 asm lines
+  WinHelpViewer                     25 funcs    1003 asm lines
+  GLFile3DS                          9 funcs     997 asm lines
+  Themes                            16 funcs     890 asm lines
+  GLSkyBox                          14 funcs     888 asm lines
+  _Unit64                           15 funcs     878 asm lines
+  ExtCtrls                          23 funcs     862 asm lines
+  GLMisc                            37 funcs     713 asm lines
+  GLCadencer                        18 funcs     664 asm lines
+  _Unit80                           17 funcs     647 asm lines
+  XCollection                       24 funcs     631 asm lines
+  MultiMon                          10 funcs     574 asm lines
+  GLMesh                            20 funcs     560 asm lines
+  Windows                          345 funcs     558 asm lines
+  _Unit88                           16 funcs     553 asm lines
+  GLHUDObjects                      14 funcs     551 asm lines
+  GLWin32Viewer                     30 funcs     531 asm lines
+  TGA                                6 funcs     529 asm lines
+  _Unit71                            5 funcs     502 asm lines
+  GLVfsPAK                           8 funcs     455 asm lines
+  UxTheme                            3 funcs     449 asm lines
+  _Unit75                            9 funcs     373 asm lines
+  _Unit100                           4 funcs     363 asm lines
+  ApplicationFileIO                 11 funcs     353 asm lines
+  _Unit73                           16 funcs     346 asm lines
+  _Unit108                           5 funcs     338 asm lines
+  GLFileMD2                          2 funcs     274 asm lines
+  _Unit81                            5 funcs     248 asm lines
+  _Unit110                           4 funcs     228 asm lines
+  _Unit10                           14 funcs     206 asm lines
+  _Unit74                            5 funcs     173 asm lines
+  Contnrs                           13 funcs     163 asm lines
+  _Unit78                            2 funcs     147 asm lines
+  _Unit89                            2 funcs     143 asm lines
+  FlatSB                             3 funcs     140 asm lines
+  _Unit1                             8 funcs      75 asm lines
+  ComCtrls                           3 funcs      65 asm lines
+  SyncObjs                           8 funcs      59 asm lines
+  _Unit63                            6 funcs      36 asm lines
+  _Unit3                             3 funcs      28 asm lines
+  CommCtrl                          23 funcs      27 asm lines
+  StdActns                           1 funcs      22 asm lines
+  _Unit44                            1 funcs      21 asm lines
+  Math                               2 funcs       8 asm lines
+  _Unit30                            1 funcs       1 asm lines
+
+LARGEST FUNCTIONS (by asm lines):
+----------------------------------------------------------------------
+  004BB710  sub_004BB710                                   124453 lines  [_Unit111]
+  0057342C  sub_0057342C                                   27141 lines  [Unit1]
+  0059BABC  TForm1.GLSceneViewer1MouseUp                   12393 lines  [Unit1]
+  00550A18  sub_00550A18                                    3615 lines  [_Unit61]
+  00592374  sub_00592374                                    3299 lines  [Unit1]
+  0049C1DC  sub_0049C1DC                                    2275 lines  [_Unit97]
+  005660D4  sub_005660D4                                    2184 lines  [Unit1]
+  0056B8E4  sub_0056B8E4                                    1610 lines  [Unit1]
+  004AE34C  _DF_                                            1302 lines  [jpeg]
+  005A8F50  sub_005A8F50                                    1164 lines  [Unit1]
+  00571ECC  sub_00571ECC                                    1132 lines  [Unit1]
+  004B9934  sub_004B9934                                    1104 lines  [_Unit114]
+  0059688C  sub_0059688C                                    1097 lines  [Unit1]
+  00460294  sub_00460294                                    1091 lines  [_Unit66]
+  0059A59C  sub_0059A59C                                     946 lines  [Unit1]
+  00404EF0  WStrSet                                          930 lines  [system]
+  0056A59C  sub_0056A59C                                     916 lines  [Unit1]
+  00498378  sub_00498378                                     796 lines  [_Unit96]
+  0044C870  BiDiDraw                                         789 lines  [Menus]
+  0044BF68  NormalDraw                                       777 lines  [Menus]
+  00411828  VarToIntCustom                                   765 lines  [variants]
+  0049B2B0  sub_0049B2B0                                     747 lines  [_Unit97]
+  00595C24  TForm1.TimerProgress                             745 lines  [Unit1]
+  0056F06C  sub_0056F06C                                     730 lines  [Unit1]
+  00590DE8  TForm1.FormCreate                                725 lines  [Unit1]
+  004A2144  sub_004A2144                                     701 lines  [GLSkyBox]
+  005691F0  sub_005691F0                                     688 lines  [Unit1]
+  0040BDA4  AppendFormat                                     655 lines  [sysutils]
+  0049EE0C  TGL3DSVectorFile.sub_0049EE0C                    604 lines  [GLFile3DS]
+  0056E508  sub_0056E508                                     601 lines  [Unit1]
+
+FUNCTIONS WITH MOST STRING REFS:
+----------------------------------------------------------------------
+  00550A18  sub_00550A18                              514 strings: topeni�t�, pol�vka, d�ev�n� �t�t, pochode�, ho��c� pochode�, ... (+509 more)
+  005660D4  sub_005660D4                              280 strings: zaplava, portalt, polevka, nablito0, nablito1, ... (+275 more)
+  0057342C  sub_0057342C                              262 strings: hrdina.md2, hrdina, h_prilba.md2, zbroj, h_kutna.md2, ... (+257 more)
+  0059BABC  TForm1.GLSceneViewer1MouseUp              111 strings: www.sudokop.com, save_, u1ka, skorapky, vyber, ... (+106 more)
+  0056F06C  sub_0056F06C                               94 strings: plocha, hrdina, hrdinam, stit, reklama, ... (+89 more)
+  00463C68  sub_00463C68                               89 strings: GL_3DFX_multisample, GL_3DFX_tbuffer, GL_3DFX_texture_compression_FXT1, GL_ARB_imaging,  GL_ARB_multisample, ... (+84 more)
+  00570BA8  sub_00570BA8                               67 strings: korbel, krumpac, hadr, chleba, mince6, ... (+62 more)
+  004B86D4  sub_004B86D4                               66 strings: a, a_c, b, c, c_h, ... (+61 more)
+  00560514  sub_00560514                               66 strings: dite.ogg, ptaci.ogg, krysa.ogg, dvere.ogg, zvon.ogg, ... (+61 more)
+  00570084  sub_00570084                               48 strings: vyber, zbroj, tma2, tma, tma3, ... (+43 more)
+  0056E508  sub_0056E508                               46 strings: mrk, jpg, tga, ., deva, ... (+41 more)
+  004B9934  sub_004B9934                               35 strings: opilec, opilec2, hrdina, hrdina_zbroj, hrdina_prilba, ... (+30 more)
+  00592374  sub_00592374                               35 strings: vybuch, xinv_l, xinv_r, ohen, ceka, ... (+30 more)
+  00561E50  sub_00561E50                               34 strings: dvere, s2tajne, rakevtkl, babice, houba, ... (+29 more)
+  00562D9C  sub_00562D9C                               33 strings: sudx, hostinsky, uhli, topeniste, ozubh1, ... (+28 more)
+  0056DEBC  sub_0056DEBC                               23 strings: jpg, tga, save_, save, m_0, ... (+18 more)
+  00590DE8  TForm1.FormCreate                          21 strings: Legie,  - DEMO,  - FULL VERSION - DO NOT DISTRIBUTE!, legie, \demo.sud, ... (+16 more)
+  0056B8E4  sub_0056B8E4                               18 strings: r, z, t, x, d, ... (+13 more)
+  00599108  sub_00599108                               17 strings: save_6, save_, tma2, \save\, save, ... (+12 more)
+  0059688C  sub_0059688C                               15 strings: map_zb, zdravib, map_zg, zdravi, r, ... (+10 more)
+  0040E7BC  GetFormatSettings                          11 strings: 0, m/d/yy, mmmm d, yyyy, am, pm, ... (+6 more)
+  00595C24  TForm1.TimerProgress                       11 strings: hrdinar, vyber, m_v1, m_, xinv_, ... (+6 more)
+  00598038  sub_00598038                               11 strings: m_logo, legie, m_4, m_3, m_2, ... (+6 more)
+  00599CD8  TForm1.FormKeyUp                           11 strings: \save\, write error, save, .dat, .bmp, ... (+6 more)
+  00563920  sub_00563920                               10 strings: invvyber, inv, nic, kur1, parat, ... (+5 more)
+  00598C28  sub_00598C28                               10 strings: xinv_pod, tma2, xinv_r, inv_r, xinv_l, ... (+5 more)
+  0056493C  sub_0056493C                                9 strings: netopyr, obluda1, obluda2, drak, ruce, ... (+4 more)
+  005691F0  sub_005691F0                                9 strings: kour, svetlo, zhavy, jiskra, pena, ... (+4 more)
+  00464EE4  sub_00464EE4                                7 strings: WGL_ARB_multisample, WGL_EXT_swap_control, WGL_ARB_buffer_region, WGL_ARB_extensions_string, WGL_ARB_pbuffer , ... (+2 more)
+  005AB24C  sub_005AB24C                                7 strings: Software\Sudokop, volume, Legie, borders, inverse, ... (+2 more)
+
+GAME STATE WRITERS (gvar_005F5577):
+--------------------------------------------------
+  00562CF8  sub_00562CF8                              [Unit1]
+  0056455C  sub_0056455C                              [Unit1]
+  00565464  sub_00565464                              [Unit1]
+  005656C8  sub_005656C8                              [Unit1]
+  00565810  sub_00565810                              [Unit1]
+  00565EB4  sub_00565EB4                              [Unit1]
+  0057342C  sub_0057342C                              [Unit1]
+  00590DE8  TForm1.FormCreate                         [Unit1]
+  00592374  sub_00592374                              [Unit1]
+  00597FF4  sub_00597FF4                              [Unit1]
+  00598038  sub_00598038                              [Unit1]
+  00598C28  sub_00598C28                              [Unit1]
+  00599108  sub_00599108                              [Unit1]
+  00599CD8  TForm1.FormKeyUp                          [Unit1]
+  0059BABC  TForm1.GLSceneViewer1MouseUp              [Unit1]
+  005A8F50  sub_005A8F50                              [Unit1]
+
+MOST-USED GLOBAL VARIABLES:
+------------------------------------------------------------
+  gvar_005F5524   71 refs (71 read, 0 write)
+  gvar_005AF664   51 refs (50 read, 1 write)
+  gvar_005F5577   34 refs (18 read, 16 write)
+  gvar_005E0E88   29 refs (28 read, 1 write)
+  gvar_005FE498   24 refs (24 read, 0 write)
+  gvar_005AD060   21 refs (20 read, 1 write)
+  gvar_005E1390   18 refs (18 read, 0 write)
+  gvar_005E1394   18 refs (17 read, 1 write)
+  gvar_005F5DF0   17 refs (16 read, 1 write)
+  gvar_005FE688   15 refs (13 read, 2 write)
+  gvar_005E0CE2   14 refs (13 read, 1 write)
+  gvar_005E1340   14 refs (8 read, 6 write)
+  gvar_005E0870   12 refs (11 read, 1 write)
+  gvar_005E0E8C   12 refs (11 read, 1 write)
+  gvar_005F5DF4   12 refs (11 read, 1 write)
+  gvar_005F5DA4   11 refs (11 read, 0 write)
+  gvar_005F554C   10 refs (9 read, 1 write)
+  gvar_005F5D08   10 refs (6 read, 4 write)
+  gvar_005F5D18   10 refs (10 read, 0 write)
+  gvar_00607DF0   10 refs (10 read, 0 write)
+  gvar_00607DF4   10 refs (10 read, 0 write)
+  gvar_005ACFB4    9 refs (9 read, 0 write)
+  gvar_005E1384    9 refs (8 read, 1 write)
+  gvar_005F5530    9 refs (9 read, 0 write)
+  gvar_005F5534    9 refs (6 read, 3 write)
+  gvar_005F5574    9 refs (6 read, 3 write)
+  gvar_005F5594    9 refs (5 read, 4 write)
+  gvar_005F5595    9 refs (6 read, 3 write)
+  gvar_00607DE4    9 refs (9 read, 0 write)
+  gvar_00607DE8    9 refs (9 read, 0 write)
+  gvar_00607E00    9 refs (9 read, 0 write)
+  gvar_00607E04    9 refs (9 read, 0 write)
+  gvar_005E1388    8 refs (2 read, 6 write)
+  gvar_005E14AC    8 refs (6 read, 2 write)
+  gvar_005F555C    8 refs (5 read, 3 write)
+  gvar_005F5592    8 refs (4 read, 4 write)
+  gvar_005F5593    8 refs (4 read, 4 write)
+  gvar_005F5D38    8 refs (7 read, 1 write)
+  gvar_005F5EE8    8 refs (8 read, 0 write)
+  gvar_005FE6A1    8 refs (7 read, 1 write)

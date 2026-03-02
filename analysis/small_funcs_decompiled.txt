@@ -1,0 +1,631 @@
+================================================================================
+  Legie - Small Utility Functions Decompiled from x86 Assembly to Object Pascal
+  Source: Unit1.pas (IDA/IDR disassembly)
+  Calling convention: Delphi 7 register (EAX=1st, EDX=2nd, ECX=3rd, stack=rest)
+================================================================================
+
+
+================================================================================
+1. sub_00561B60 — CompareCoords
+   Address: 00561B60
+================================================================================
+
+--- Raw Assembly ---
+ 00561B60    cmp         eax,dword ptr ds:[5FE6A1]  ;gvar_005FE6A1
+ 00561B66    jne         00561B70
+ 00561B68    cmp         edx,dword ptr ds:[5FE6A5]  ;gvar_005FE6A5
+ 00561B6E    je          00561B73
+ 00561B70    xor         eax,eax
+ 00561B72    ret
+ 00561B73    mov         al,1
+ 00561B75    ret
+
+--- Decompiled Pascal ---
+
+function CompareCoords(X, Y: Integer): Boolean;
+begin
+  Result := (X = gvar_005FE6A1) and (Y = gvar_005FE6A5);
+end;
+
+--- Notes ---
+  Parameters: EAX = X coordinate, EDX = Y coordinate
+  Return: Boolean (AL); True if both match the stored globals
+  Purpose: Checks whether the given (X, Y) pair matches the coordinate stored
+           in globals gvar_005FE6A1 and gvar_005FE6A5 (4 bytes apart, likely
+           a stored target/selected position on the game board).
+  Identical to: sub_00561D24 (exact duplicate — see #5 below).
+
+
+================================================================================
+2. sub_00561B78 — ExtractDigits
+   Address: 00561B78
+================================================================================
+
+--- Raw Assembly ---
+ 00561B78    push        ebp
+ 00561B79    mov         ebp,esp
+ 00561B7B    add         esp,0FFFFFFF0
+ 00561B7E    push        ebx
+ 00561B7F    push        esi
+ 00561B80    push        edi
+ 00561B81    xor         ecx,ecx
+ 00561B83    mov         dword ptr [ebp-10],ecx       ; TempChar := ''
+ 00561B86    mov         dword ptr [ebp-0C],ecx       ; DigitStr := ''
+ 00561B89    mov         dword ptr [ebp-4],edx        ; save Default
+ 00561B8C    mov         esi,eax                      ; esi = S (input string)
+ 00561B8E    xor         eax,eax
+ 00561B90    push        ebp
+ 00561B91    push        561C13
+ 00561B96    push        dword ptr fs:[eax]           ; SEH frame setup
+ 00561B99    mov         dword ptr fs:[eax],esp
+ 00561B9C    lea         eax,[ebp-0C]
+ 00561B9F    call        @LStrClr                     ; DigitStr := ''
+ 00561BA4    mov         eax,esi
+ 00561BA6    call        @LStrLen                     ; edi = Length(S)
+ 00561BAB    mov         edi,eax
+ 00561BAD    test        edi,edi
+ 00561BAF    jle         00561BE2                     ; if Length <= 0, skip loop
+ 00561BB1    mov         dword ptr [ebp-8],1          ; I := 1
+ 00561BB8    mov         eax,dword ptr [ebp-8]        ; -- loop start --
+ 00561BBB    mov         bl,byte ptr [esi+eax-1]      ; Ch := S[I]
+ 00561BBF    mov         eax,ebx
+ 00561BC1    add         al,0D0                       ; AL := Ch - $30 (= Ch - '0')
+ 00561BC3    sub         al,0A
+ 00561BC5    jae         00561BDC                     ; if (Ch - '0') >= 10 then skip (not a digit)
+ 00561BC7    lea         eax,[ebp-10]
+ 00561BCA    mov         edx,ebx
+ 00561BCC    call        @LStrFromChar                ; TempChar := Ch
+ 00561BD1    mov         edx,dword ptr [ebp-10]
+ 00561BD4    lea         eax,[ebp-0C]
+ 00561BD7    call        @LStrCat                     ; DigitStr := DigitStr + Ch
+ 00561BDC    inc         dword ptr [ebp-8]            ; Inc(I)
+ 00561BDF    dec         edi
+ 00561BE0    jne         00561BB8                     ; -- loop end --
+ 00561BE2    lea         edx,[ebp-8]
+ 00561BE5    mov         eax,dword ptr [ebp-0C]
+ 00561BE8    call        @ValLong                     ; Val(DigitStr, Result, Code)
+ 00561BED    cmp         dword ptr [ebp-8],0
+ 00561BF1    je          00561BF6                     ; if Code = 0 then keep Result
+ 00561BF3    mov         eax,dword ptr [ebp-4]        ; else Result := Default
+ 00561BF6    mov         ebx,eax
+ 00561BF8    xor         eax,eax
+ 00561BFA    pop         edx                          ; SEH frame teardown
+ 00561BFB    pop         ecx
+ 00561BFC    pop         ecx
+ 00561BFD    mov         dword ptr fs:[eax],edx
+ 00561C00    push        561C1A
+ 00561C05    lea         eax,[ebp-10]
+ 00561C08    mov         edx,2
+ 00561C0D    call        @LStrArrayClr                ; finalize 2 local strings
+ 00561C12    ret
+ 00561C13    jmp         @HandleFinally
+ 00561C18    jmp         00561C05
+ 00561C1A    mov         eax,ebx                      ; return saved result
+ 00561C1C    pop         edi
+ 00561C1D    pop         esi
+ 00561C1E    pop         ebx
+ 00561C1F    mov         esp,ebp
+ 00561C21    pop         ebp
+ 00561C22    ret
+
+--- Decompiled Pascal ---
+
+function ExtractDigits(const S: string; Default: Integer): Integer;
+var
+  DigitStr: string;
+  Ch: Char;
+  I, Code: Integer;
+begin
+  DigitStr := '';
+  for I := 1 to Length(S) do
+  begin
+    Ch := S[I];
+    if Ch in ['0'..'9'] then
+      DigitStr := DigitStr + Ch;
+  end;
+  Val(DigitStr, Result, Code);
+  if Code <> 0 then
+    Result := Default;
+end;
+
+--- Notes ---
+  Parameters: EAX = S (AnsiString), EDX = Default (Integer)
+  Return: Integer (EAX)
+  Purpose: Strips all non-digit characters from a string, then converts the
+           remaining digit-only string to an integer via Val(). If the conversion
+           fails (empty string or overflow), returns the Default value.
+  Used by: sub_00561C24 to parse numbers from prefixed strings.
+  The digit check uses the classic x86 trick: add $D0 (= subtract '0'),
+  then compare unsigned against 10.
+
+
+================================================================================
+3. sub_00561C24 — ExtractPrefixedNumber
+   Address: 00561C24
+================================================================================
+
+--- Raw Assembly ---
+ 00561C24    push        ebp
+ 00561C25    mov         ebp,esp
+ 00561C27    push        0                            ; local var [ebp-4] = nil
+ 00561C29    push        ebx
+ 00561C2A    push        esi
+ 00561C2B    mov         esi,edx                      ; esi = S (input string)
+ 00561C2D    mov         ebx,eax                      ; ebx = Prefix
+ 00561C2F    xor         eax,eax
+ 00561C31    push        ebp
+ 00561C32    push        561C86
+ 00561C37    push        dword ptr fs:[eax]           ; SEH frame
+ 00561C3A    mov         dword ptr fs:[eax],esp
+ 00561C3D    mov         edx,esi
+ 00561C3F    mov         eax,ebx
+ 00561C41    call        AnsiPos                      ; AnsiPos(Prefix, S)
+ 00561C46    dec         eax
+ 00561C47    jne         00561C6D                     ; if AnsiPos <> 1, goto return -1
+ 00561C49    mov         al,[00561C94]                ; flags byte = $02 ([rfIgnoreCase])
+ 00561C4E    push        eax                          ; push TReplaceFlags
+ 00561C4F    lea         eax,[ebp-4]
+ 00561C52    push        eax                          ; push @TempStr (hidden Result)
+ 00561C53    xor         ecx,ecx                      ; NewPattern = ''
+ 00561C55    mov         edx,ebx                      ; OldPattern = Prefix
+ 00561C57    mov         eax,esi                      ; S = input string
+ 00561C59    call        StringReplace                 ; StringReplace(S, Prefix, '', [rfIgnoreCase])
+ 00561C5E    mov         eax,dword ptr [ebp-4]        ; eax = stripped string
+ 00561C61    or          edx,0FFFFFFFF                ; edx = -1 (default for ExtractDigits)
+ 00561C64    call        00561B78                      ; ExtractDigits(stripped, -1)
+ 00561C69    mov         ebx,eax
+ 00561C6B    jmp         00561C70
+ 00561C6D    or          ebx,0FFFFFFFF                ; Result := -1
+ 00561C70    xor         eax,eax
+ 00561C72    pop         edx                          ; SEH teardown
+ 00561C73    pop         ecx
+ 00561C74    pop         ecx
+ 00561C75    mov         dword ptr fs:[eax],edx
+ 00561C78    push        561C8D
+ 00561C7D    lea         eax,[ebp-4]
+ 00561C80    call        @LStrClr                     ; finalize TempStr
+ 00561C85    ret
+ 00561C86    jmp         @HandleFinally
+ 00561C8B    jmp         00561C7D
+ 00561C8D    mov         eax,ebx
+ 00561C8F    pop         esi
+ 00561C90    pop         ebx
+ 00561C91    pop         ecx
+ 00561C92    pop         ebp
+ 00561C93    ret
+
+--- Decompiled Pascal ---
+
+function ExtractPrefixedNumber(const Prefix, S: string): Integer;
+var
+  Stripped: string;
+begin
+  if AnsiPos(Prefix, S) = 1 then
+  begin
+    Stripped := StringReplace(S, Prefix, '', [rfIgnoreCase]);
+    Result := ExtractDigits(Stripped, -1);
+  end
+  else
+    Result := -1;
+end;
+
+--- Notes ---
+  Parameters: EAX = Prefix (AnsiString), EDX = S (AnsiString)
+  Return: Integer (EAX); the numeric value after removing the prefix, or -1
+  Purpose: If string S starts with Prefix (at position 1), strips the prefix
+           (case-insensitive) and extracts the remaining digits as an integer.
+           Returns -1 if the prefix is not found at the start, or if no valid
+           number can be extracted.
+  Example: ExtractPrefixedNumber('unit', 'unit42') → 42
+           ExtractPrefixedNumber('unit', 'xunit42') → -1
+  Calls: AnsiPos, StringReplace, ExtractDigits (sub_00561B78)
+  The constant at address $00561C94 is the byte value $02, which encodes
+  the Delphi set [rfIgnoreCase] for TReplaceFlags.
+
+
+================================================================================
+4. sub_00561C98 — SetSumAppearance
+   Address: 00561C98
+   References: string literal 'sum'
+================================================================================
+
+--- Raw Assembly ---
+ 00561C98    add         esp,0FFFFFFF8                ; alloc 8 bytes on stack
+ 00561C9B    mov         byte ptr [esp],al            ; [esp] = Visibility (param1)
+ 00561C9E    mov         dword ptr [esp+4],3F19999A   ; default Alpha = 0.6
+ 00561CA6    dec         dl
+ 00561CA8    je          00561CB0                     ; if Mode = 1 → Alpha := 0.25
+ 00561CAA    dec         dl
+ 00561CAC    je          00561CBA                     ; if Mode = 2 → Alpha := 0.05
+ 00561CAE    jmp         00561CC2                     ; else keep default 0.6
+ 00561CB0    mov         dword ptr [esp+4],3E800000   ; Alpha := 0.25
+ 00561CB8    jmp         00561CC2
+ 00561CBA    mov         dword ptr [esp+4],3D4CCCCD   ; Alpha := 0.05
+ 00561CC2    push        dword ptr [esp+4]            ; push Alpha onto stack (param for SetColor)
+ 00561CC6    mov         eax,[005F5524]               ; eax = Form1Ref
+ 00561CCB    mov         eax,dword ptr [eax+31C]      ; eax = Form1Ref.GLScene1 (component at +$31C)
+ 00561CD1    mov         eax,dword ptr [eax+34]       ; eax = GLScene1.Objects
+ 00561CD4    mov         edx,561D20                   ; edx = 'sum'
+ 00561CD9    call        004776DC                     ; FindChild('sum')
+ 00561CDE    mov         eax,dword ptr [eax+18]       ; .Material
+ 00561CE1    mov         eax,dword ptr [eax+18]       ; .FrontProperties
+ 00561CE4    mov         eax,dword ptr [eax+1C]       ; .Diffuse (TGLColor)
+ 00561CE7    mov         edx,3                        ; index 3 = Alpha component
+ 00561CEC    call        TGLColor.SetRed              ; SetColorComponent(3, Alpha) — sets Alpha
+ 00561CF1    mov         eax,[005F5524]               ; eax = Form1Ref
+ 00561CF6    mov         eax,dword ptr [eax+2F8]      ; eax = Form1Ref.GLCadencer1 (component at +$2F8)
+ 00561CFC    mov         eax,dword ptr [eax+34]       ; eax = Cadencer.Animations
+ 00561CFF    xor         ecx,ecx                      ; param3 = 0
+ 00561D01    mov         edx,561D20                   ; edx = 'sum'
+ 00561D06    call        0047D35C                     ; FindAnimation('sum')
+ 00561D0B    mov         dl,byte ptr [esp]            ; dl = Visibility
+ 00561D0E    mov         ecx,dword ptr [eax]          ; ecx = VMT pointer
+ 00561D10    call        dword ptr [ecx+3C]           ; virtual method: SetVisible(Visibility)
+ 00561D13    pop         ecx                          ; clean up stack
+ 00561D14    pop         edx
+ 00561D15    ret
+
+--- Decompiled Pascal ---
+
+procedure SetSumAppearance(Visibility: Byte; Mode: Byte);
+var
+  Alpha: Single;
+  SumObj: TGLBaseSceneObject;
+  SumAnim: TGLAnimationBase;
+begin
+  case Mode of
+    1: Alpha := 0.25;
+    2: Alpha := 0.05;
+  else
+    Alpha := 0.6;
+  end;
+
+  SumObj := Form1Ref.GLScene1.Objects.FindChild('sum');
+  SumObj.Material.FrontProperties.Diffuse.Alpha := Alpha;
+
+  SumAnim := Form1Ref.GLCadencer1.Animations.FindByName('sum');
+  SumAnim.SetVisible(Visibility);
+end;
+
+--- Notes ---
+  Parameters: AL = Visibility (Byte), DL = Mode (Byte)
+  Return: None (procedure)
+  Purpose: Controls the appearance of the 'sum' GLScene object.
+           Sets its material alpha/opacity based on Mode:
+             Mode 0 (or default): Alpha = 0.6  (semi-transparent)
+             Mode 1:              Alpha = 0.25 (mostly transparent)
+             Mode 2:              Alpha = 0.05 (nearly invisible)
+           Also controls visibility of the 'sum' animation via a virtual
+           method call (likely Play/Stop or SetVisible).
+  Float constants decoded:
+    $3F19999A = 0.6f
+    $3E800000 = 0.25f
+    $3D4CCCCD = 0.05f
+  The "TGLColor.SetRed" label from IDA is misleading — EDX=3 selects the
+  Alpha component (R=0, G=1, B=2, A=3) of the indexed color property.
+
+
+================================================================================
+5. sub_00561D24 — CompareCoords (duplicate)
+   Address: 00561D24
+================================================================================
+
+--- Raw Assembly ---
+ 00561D24    cmp         eax,dword ptr ds:[5FE6A1]  ;gvar_005FE6A1
+ 00561D2A    jne         00561D34
+ 00561D2C    cmp         edx,dword ptr ds:[5FE6A5]  ;gvar_005FE6A5
+ 00561D32    je          00561D37
+ 00561D34    xor         eax,eax
+ 00561D36    ret
+ 00561D37    mov         al,1
+ 00561D39    ret
+
+--- Decompiled Pascal ---
+
+function CompareCoords2(X, Y: Integer): Boolean;
+begin
+  Result := (X = gvar_005FE6A1) and (Y = gvar_005FE6A5);
+end;
+
+--- Notes ---
+  Parameters: EAX = X, EDX = Y
+  Return: Boolean (AL)
+  Purpose: Exact duplicate of sub_00561B60 (CompareCoords). Byte-for-byte
+           identical logic, just at a different address. This likely resulted
+           from the compiler inlining or duplicating a small function, or from
+           the developer copy-pasting the function. Both compare (X, Y) against
+           the global coordinate pair (gvar_005FE6A1, gvar_005FE6A5).
+
+
+================================================================================
+6. sub_00561D3C — AxisDistance
+   Address: 00561D3C
+================================================================================
+
+--- Raw Assembly ---
+ 00561D3C    push        ebp
+ 00561D3D    mov         ebp,esp
+ 00561D3F    push        ebx
+ 00561D40    push        esi
+ 00561D41    mov         esi,5                        ; default distance = 5
+ 00561D46    cmp         cl,al                        ; if X2 = X1 (same column)
+ 00561D48    jne         00561D59
+ 00561D4A    mov         esi,edx                      ;   distance = Y1
+ 00561D4C    and         esi,0FF                      ;   mask to byte
+ 00561D52    xor         ebx,ebx
+ 00561D54    mov         bl,byte ptr [ebp+8]          ;   ebx = Y2
+ 00561D57    sub         esi,ebx                      ;   distance = Y1 - Y2
+ 00561D59    cmp         dl,byte ptr [ebp+8]          ; if Y1 = Y2 (same row)
+ 00561D5C    jne         00561D6C
+ 00561D5E    mov         esi,eax                      ;   distance = X1
+ 00561D60    and         esi,0FF                      ;   mask to byte
+ 00561D66    xor         eax,eax
+ 00561D68    mov         al,cl                        ;   eax = X2
+ 00561D6A    sub         esi,eax                      ;   distance = X1 - X2
+ 00561D6C    test        esi,esi
+ 00561D6E    jge         00561D76
+ 00561D70    mov         eax,esi
+ 00561D72    neg         eax                          ; abs(distance)
+ 00561D74    mov         esi,eax
+ 00561D76    mov         eax,esi                      ; return distance
+ 00561D78    pop         esi
+ 00561D79    pop         ebx
+ 00561D7A    pop         ebp
+ 00561D7B    ret         4                            ; clean 4 bytes (1 stack param)
+
+--- Decompiled Pascal ---
+
+function AxisDistance(X1, Y1, X2, Y2: Byte): Integer;
+begin
+  Result := 5;  { default: not on same axis }
+  if X2 = X1 then
+    Result := Y1 - Y2;     { same column → vertical distance }
+  if Y1 = Y2 then
+    Result := X1 - X2;     { same row → horizontal distance }
+  Result := Abs(Result);
+end;
+
+--- Notes ---
+  Parameters: AL = X1, DL = Y1, CL = X2, [EBP+8] = Y2 (Byte on stack)
+  Return: Integer (EAX)
+  Purpose: Computes the axis-aligned distance between two board positions.
+           If they share a column (X1=X2), returns |Y1-Y2|.
+           If they share a row (Y1=Y2), returns |X1-X2|.
+           If neither axis is shared, returns the default value 5.
+           Note: both conditions are checked sequentially (not if/else),
+           so if BOTH match (same cell), the row check overwrites the column
+           check — but both give 0 in that case, so the result is consistent.
+  The 'ret 4' cleans 4 bytes from the stack (the 4th parameter Y2).
+  Likely used for board game movement or range calculations.
+
+
+================================================================================
+7. sub_00561D80 — AdvancePhase
+   Address: 00561D80
+================================================================================
+
+--- Raw Assembly ---
+ 00561D80    cmp         word ptr ds:[5FE754],1   ;gvar_005FE754
+ 00561D88    jne         00561D93
+ 00561D8A    mov         word ptr ds:[5FE754],2   ;gvar_005FE754
+ 00561D93    ret
+
+--- Decompiled Pascal ---
+
+procedure AdvancePhase;
+begin
+  if gvar_005FE754 = 1 then
+    gvar_005FE754 := 2;
+end;
+
+--- Notes ---
+  Parameters: None
+  Return: None
+  Purpose: Advances a game phase/state variable from phase 1 to phase 2.
+           gvar_005FE754 is a Word (16-bit) that tracks some sequential phase.
+           Only transitions 1→2; other values are left unchanged.
+           This is a one-way state transition, likely part of a turn or
+           action sequence in the game logic.
+
+
+================================================================================
+8. sub_00561D94 — AllFlagsSet
+   Address: 00561D94
+================================================================================
+
+--- Raw Assembly ---
+ 00561D94    cmp         word ptr ds:[5FE7A6],1   ;gvar_005FE7A6
+ 00561D9C    jne         00561DB2
+ 00561D9E    cmp         word ptr ds:[5FE7A8],1   ;gvar_005FE7A8
+ 00561DA6    jne         00561DB2
+ 00561DA8    cmp         word ptr ds:[5FE7AA],1   ;gvar_005FE7AA
+ 00561DB0    je          00561DB5
+ 00561DB2    xor         eax,eax
+ 00561DB4    ret
+ 00561DB5    mov         al,1
+ 00561DB7    ret
+
+--- Decompiled Pascal ---
+
+function AllFlagsSet: Boolean;
+begin
+  Result := (gvar_005FE7A6 = 1) and
+            (gvar_005FE7A8 = 1) and
+            (gvar_005FE7AA = 1);
+end;
+
+--- Notes ---
+  Parameters: None
+  Return: Boolean (AL)
+  Purpose: Returns True only when three consecutive Word-sized global flags
+           are all set to exactly 1. The globals are at addresses:
+             $5FE7A6, $5FE7A8, $5FE7AA  (each 2 bytes apart)
+           These likely represent three conditions or requirements that must
+           all be satisfied — possibly three objectives, three resources,
+           or three unit readiness flags in the game.
+  Short-circuit evaluation: exits early returning False if any flag ≠ 1.
+
+
+================================================================================
+9. sub_00561DB8 — IsValueInRange
+   Address: 00561DB8
+================================================================================
+
+--- Raw Assembly ---
+ 00561DB8    mov         edx,eax                      ; edx = Index (preserve)
+ 00561DBA    movzx       eax,dx                       ; eax = Word(Index)
+ 00561DBD    lea         eax,[eax+eax*8]              ; eax = Index * 9
+ 00561DC0    mov         ecx,[eax*4+5FDD54]           ; ecx = Records[Index].RangeStart
+ 00561DC7    cmp         ecx,[eax*4+5FDD5C]           ; compare RangeStart with Records[Index].RangeEnd
+ 00561DCE    jg          00561E01                     ; if Start > End, goto descending branch
+ ; --- Ascending range (Start <= End): check Start <= Threshold <= End ---
+ 00561DD0    movzx       eax,dx
+ 00561DD3    lea         ecx,[eax+eax*8]
+ 00561DD6    fild        dword ptr [ecx*4+5FDD54]     ; ST(0) = float(RangeStart)
+ 00561DDD    fcomp       dword ptr ds:[5FE678]        ; compare with Threshold (Single)
+ 00561DE3    fnstsw      al
+ 00561DE5    sahf
+ 00561DE6    ja          00561DFA                     ; if RangeStart > Threshold → false
+ 00561DE8    fild        dword ptr [ecx*4+5FDD5C]     ; ST(0) = float(RangeEnd)
+ 00561DEF    fcomp       dword ptr ds:[5FE678]        ; compare with Threshold
+ 00561DF5    fnstsw      al
+ 00561DF7    sahf
+ 00561DF8    jae         00561DFE                     ; if RangeEnd >= Threshold → true
+ 00561DFA    xor         eax,eax                      ; return False
+ 00561DFC    jmp         00561E31
+ 00561DFE    mov         al,1                         ; return True
+ 00561E00    ret
+ ; --- Descending range (Start > End): wrapped range check ---
+ 00561E01    movzx       eax,dx
+ 00561E04    lea         ecx,[eax+eax*8]
+ 00561E07    fild        dword ptr [ecx*4+5FDD54]     ; ST(0) = float(RangeStart)
+ 00561E0E    fcomp       dword ptr ds:[5FE678]        ; compare with Threshold
+ 00561E14    fnstsw      al
+ 00561E16    sahf
+ 00561E17    jbe         00561E2F                     ; if RangeStart <= Threshold → true
+ 00561E19    fild        dword ptr [ecx*4+5FDD5C]     ; ST(0) = float(RangeEnd)
+ 00561E20    fcomp       dword ptr ds:[5FE678]        ; compare with Threshold
+ 00561E26    fnstsw      al
+ 00561E28    sahf
+ 00561E29    jae         00561E2F                     ; if RangeEnd >= Threshold → true
+ 00561E2B    xor         eax,eax                      ; return False
+ 00561E2D    jmp         00561E31
+ 00561E2F    mov         al,1                         ; return True
+ 00561E31    ret
+
+--- Decompiled Pascal ---
+
+{ Record array at gvar_005FDD54, 36 bytes per record (9 dwords).
+  Field at offset 0 = RangeStart (Integer), offset 8 = RangeEnd (Integer).
+  gvar_005FE678 is a Single (threshold/current value). }
+
+function IsValueInRange(Index: Word): Boolean;
+var
+  RangeStart, RangeEnd: Integer;
+  Threshold: Single;
+begin
+  RangeStart := RecordArray[Index].RangeStart;  { offset 0 in 36-byte record }
+  RangeEnd   := RecordArray[Index].RangeEnd;    { offset 8 in 36-byte record }
+  Threshold  := gvar_005FE678;
+
+  if RangeStart <= RangeEnd then
+    { Normal ascending range: check Threshold is within [Start..End] }
+    Result := (RangeStart <= Threshold) and (RangeEnd >= Threshold)
+  else
+    { Wrapped/descending range: check Threshold is outside the gap }
+    Result := (RangeStart <= Threshold) or (RangeEnd >= Threshold);
+end;
+
+--- Notes ---
+  Parameters: AX = Index (Word)
+  Return: Boolean (AL)
+  Purpose: Checks whether a global floating-point threshold value
+           (gvar_005FE678: Single) falls within a range defined by two
+           integer fields in a record array.
+
+  Record array layout:
+    Base address: $005FDD54
+    Record size: 36 bytes (9 × 4)
+    Indexing: Records[Index] is at base + Index * 36
+    RangeStart at record offset 0, RangeEnd at record offset 8
+
+  Range logic:
+    - If RangeStart <= RangeEnd (normal): True when Start <= Threshold <= End
+    - If RangeStart > RangeEnd (wrapped): True when Threshold >= Start OR
+      Threshold <= End — this handles circular/wrapped ranges (e.g., animation
+      keyframes that wrap around, or cyclic game time).
+
+  Uses x87 FPU: fild loads integers as floats for comparison with the
+  Single-precision threshold. The fcomp/fnstsw/sahf pattern is the standard
+  Delphi 7 idiom for floating-point comparisons before SSE2 was common.
+
+
+================================================================================
+10. sub_00561E34 — ClearStringState
+    Address: 00561E34
+================================================================================
+
+--- Raw Assembly ---
+ 00561E34    mov         eax,5F5D8C              ;gvar_005F5D8C:AnsiString
+ 00561E39    call        @LStrClr                ; gvar_005F5D8C := ''
+ 00561E3E    mov         eax,5F5D94              ;gvar_005F5D94:AnsiString
+ 00561E43    call        @LStrClr                ; gvar_005F5D94 := ''
+ 00561E48    mov         byte ptr ds:[5F5D90],0  ;gvar_005F5D90
+ 00561E4F    ret
+
+--- Decompiled Pascal ---
+
+procedure ClearStringState;
+begin
+  gvar_005F5D8C := '';   { AnsiString at $5F5D8C }
+  gvar_005F5D94 := '';   { AnsiString at $5F5D94 }
+  gvar_005F5D90 := 0;    { Byte flag at $5F5D90 }
+end;
+
+--- Notes ---
+  Parameters: None
+  Return: None
+  Purpose: Clears two global AnsiString variables and resets a byte flag to 0.
+           This is a state cleanup/reset function, likely called when
+           transitioning between game states or closing a dialog.
+  Memory layout of the three globals:
+    $5F5D8C: AnsiString (4 bytes, pointer to string data)
+    $5F5D90: Byte (flag/state, sits between the two strings)
+    $5F5D94: AnsiString (4 bytes, pointer to string data)
+  @LStrClr is the Delphi RTL function that frees the string and sets the
+  pointer to nil (empty string).
+
+
+================================================================================
+  Summary Table
+================================================================================
+
+  Address    | Name                   | Type     | Params      | Returns
+  -----------+------------------------+----------+-------------+---------
+  00561B60   | CompareCoords          | function | X, Y: Int   | Boolean
+  00561B78   | ExtractDigits          | function | S, Default  | Integer
+  00561C24   | ExtractPrefixedNumber  | function | Prefix, S   | Integer
+  00561C98   | SetSumAppearance       | procedure| Vis, Mode   | —
+  00561D24   | CompareCoords2 (dup)   | function | X, Y: Int   | Boolean
+  00561D3C   | AxisDistance            | function | X1,Y1,X2,Y2| Integer
+  00561D80   | AdvancePhase           | procedure| (none)      | —
+  00561D94   | AllFlagsSet            | function | (none)      | Boolean
+  00561DB8   | IsValueInRange         | function | Index: Word | Boolean
+  00561E34   | ClearStringState       | procedure| (none)      | —
+
+================================================================================
+  Key Global Variables Referenced
+================================================================================
+
+  $005F5524  Form1Ref          TForm1         Main form instance
+  $005FE6A1  CoordX            Integer        Stored X coordinate
+  $005FE6A5  CoordY            Integer        Stored Y coordinate
+  $005FE678  Threshold         Single         Float threshold/current value
+  $005FE754  PhaseState        Word           Game phase (1→2 transition)
+  $005FE7A6  Flag1             Word           Condition flag 1
+  $005FE7A8  Flag2             Word           Condition flag 2
+  $005FE7AA  Flag3             Word           Condition flag 3
+  $005FDD54  RecordArrayBase   array of rec   36-byte records with ranges
+  $005F5D8C  StringVar1        AnsiString     Cleared by ClearStringState
+  $005F5D90  ByteFlag          Byte           Cleared by ClearStringState
+  $005F5D94  StringVar2        AnsiString     Cleared by ClearStringState

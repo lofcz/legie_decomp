@@ -1,0 +1,82 @@
+[
+  {
+    "func": "sub_00562CF8",
+    "addr": "00562CF8",
+    "unit": "Unit1"
+  },
+  {
+    "func": "sub_0056455C",
+    "addr": "0056455C",
+    "unit": "Unit1"
+  },
+  {
+    "func": "sub_00565464",
+    "addr": "00565464",
+    "unit": "Unit1"
+  },
+  {
+    "func": "sub_005656C8",
+    "addr": "005656C8",
+    "unit": "Unit1"
+  },
+  {
+    "func": "sub_00565810",
+    "addr": "00565810",
+    "unit": "Unit1"
+  },
+  {
+    "func": "sub_00565EB4",
+    "addr": "00565EB4",
+    "unit": "Unit1"
+  },
+  {
+    "func": "sub_0057342C",
+    "addr": "0057342C",
+    "unit": "Unit1"
+  },
+  {
+    "func": "TForm1.FormCreate",
+    "addr": "00590DE8",
+    "unit": "Unit1"
+  },
+  {
+    "func": "sub_00592374",
+    "addr": "00592374",
+    "unit": "Unit1"
+  },
+  {
+    "func": "sub_00597FF4",
+    "addr": "00597FF4",
+    "unit": "Unit1"
+  },
+  {
+    "func": "sub_00598038",
+    "addr": "00598038",
+    "unit": "Unit1"
+  },
+  {
+    "func": "sub_00598C28",
+    "addr": "00598C28",
+    "unit": "Unit1"
+  },
+  {
+    "func": "sub_00599108",
+    "addr": "00599108",
+    "unit": "Unit1"
+  },
+  {
+    "func": "TForm1.FormKeyUp",
+    "addr": "00599CD8",
+    "unit": "Unit1"
+  },
+  {
+    "func": "TForm1.GLSceneViewer1MouseUp",
+    "addr": "0059BABC",
+    "unit": "Unit1"
+  },
+  {
+    "func": "sub_005A8F50",
+    "addr": "005A8F50",
+    "unit": "Unit1"
+  }
+]
